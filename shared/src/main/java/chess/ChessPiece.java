@@ -52,7 +52,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return findPieceMoves(board, myPosition, true);
+        return findPieceMoves(board, myPosition);
     }
 
     @Override
@@ -137,7 +137,14 @@ public class ChessPiece {
         BishopMoves(moves, board, myPosition);
     }
     //king
-
+    private void KingMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
+        for( int i = myPosition.getRow(); i<=myPosition.getRow()+1; i++){
+            for(int j = myPosition.getColumn(); j<=myPosition.getColumn()+1; j++){
+                ChessPosition newPosition = new ChessPosition(i, j);
+                //check that its a valid positon and moves.add it
+            }
+        }
+    }
     //knight
 
     //pawn
