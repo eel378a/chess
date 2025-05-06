@@ -52,9 +52,218 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return findPieceMoves(board, myPosition);
+        Collection<ChessMove> moves = new ArrayList<>();
+        switch (type) {
+            case PAWN -> {
+                int[][] directions = getDirections(type);
+                assert directions != null;
+                for (int[] direction : directions) {
+                    ChessMove newMove;
+                    newMove = getPawnMove(board, myPosition, direction[0], direction[1]);
+
+                    // and on the first move PAWN can move 2...
+                    if ((direction[1] == 0) && isFirstMove(pieceColor, myPosition)){
+                        ChessMove extraMove = null;
+                        if (newMove != null){
+                            switch (pieceColor){
+                                case WHITE -> extraMove = getPawnMove(board, myPosition, direction[0] + 1, direction[1]);
+                                case BLACK -> extraMove = getPawnMove(board, myPosition, direction[0] - 1, direction[1]);
+                            }
+                        }
+                        //if (newMove != null) moves.add(newMove);
+                        if (extraMove != null) moves.add(extraMove);
+                    }
+
+                    if (newMove != null){
+                        if (canPromote(newMove, pieceColor)) {
+                            moves.addAll(getPawnPromotions(newMove));
+                        } else moves.add(newMove);
+                    }
+                }
+            }
+            case QUEEN, BISHOP, ROOK -> {
+                int[][] directions = getDirections(type);
+                assert directions != null; //since it was yelling at me that this could be an issue if not asserted
+                for (int[] direction : directions) {
+                    moves.addAll(findLinearMoves(board, myPosition, direction[0], direction[1]));
+                }
+            }
+            case KING, KNIGHT -> { // both move only one
+                int[][] directions = getDirections(type);
+                assert directions != null;
+                for (int[] direction : directions) {
+                    ChessMove newMove = getOneMove(board, myPosition, direction[0], direction[1]);
+                    if (newMove != null) moves.add(newMove);
+                }
+            }
+        }
+        return moves;
+    }
+    //additional functions. getDirections, isOccupied, isOutofBounds, and findLinear, and all the annoying pawn stuff
+    private int[][] getDirections(PieceType type) {
+        switch (type) {
+            case KING, QUEEN -> { //can go all directions
+                return new int[][]{
+                        {1, 0},   // up
+                        {1, 1},   // up right
+                        {0, 1},   // directly right
+                        {-1, 1},  // right and down
+                        {-1, 0},  // down
+                        {-1, -1}, // down/left
+                        {0, -1},  // left
+                        {1, -1}   // up and left
+                };
+            }
+            case BISHOP -> {
+                return new int[][]{
+                        {1, 1},   //up/right
+                        {-1, 1},  //down/right
+                        {-1, -1}, //down/left
+                        {1, -1}   //up/ left
+                };
+            }
+            case KNIGHT -> {
+                return new int[][]{
+                        {2, 1},   //up 2 right 1
+                        {1, 2},   // up 1 right 2
+                        {-1, 2},  // down 1 over 2
+                        {-2, 1},  // down 2 right 1
+                        {-2, -1}, // down 2 left 1
+                        {-1, -2}, // down 1 left2
+                        {1, -2},  // up one left 2
+                        {2, -1}   // up 2 left 1
+                };
+
+            }
+            case ROOK -> {
+                return new int[][]{
+                        {1, 0},  // up
+                        {0, 1},  //down
+                        {-1, 0}, // right
+                        {0, -1}, //left
+                };
+            }
+            case PAWN -> {
+                switch (this.getTeamColor()){
+                    case WHITE -> {
+                        return new int [][]{
+                                {1, -1}, // up and right
+                                {1, 0},  //up
+                                {1, 1},  // up and left
+                        };
+                    }
+                    case BLACK -> {
+                        return new int [][]{
+                                {-1, -1},  //down right
+                                {-1, 0},   //down
+                                {-1, 1},   //down and left
+                        };
+                    }
+                }
+            }
+        }
+        return null;
     }
 
+    private boolean isOccupied (ChessBoard board, ChessPosition newPos){
+        return board.getPiece(newPos) != null;
+    }
+
+    private boolean isOutOfBounds(ChessPosition position) {
+        if (position.getRow() <= 0 || position.getRow() > 8 || position.getColumn() <= 0 || position.getColumn() > 8) {
+            return true;  // next position is out of bounds
+        }
+        else return false;  // next position is within bounds
+    }
+
+
+    private Collection<ChessMove> findLinearMoves(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
+        ArrayList<ChessMove> possibleMoves = new ArrayList<>();
+
+        for (int i = 1; i < 8; i++) {  // loops through all squares in a straight line (including diagonals?)
+            int nextRow = myPosition.getRow() + (i * vert);
+            int nextCol = myPosition.getColumn() + (i * horizon);
+            ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
+
+            if (isOutOfBounds(nextPos)) break; // out of bounds
+
+            if (isOccupied(board, nextPos)) {
+                if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
+                    possibleMoves.add(new ChessMove(myPosition, nextPos, null));
+                    break;
+                } else break;
+            } else possibleMoves.add(new ChessMove(myPosition, nextPos, null));
+        }
+        return possibleMoves;
+    }
+
+    //pawn stuff
+    private ChessMove getOneMove(ChessBoard board, ChessPosition myPosition, int verticalDir, int horizontalDir) {
+        int nextRow = myPosition.getRow() + verticalDir;
+        int nextCol = myPosition.getColumn() + horizontalDir;
+        ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
+
+        if (isOutOfBounds(nextPos)) return null;
+
+        if (isOccupied(board, nextPos)) {
+            if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
+                return new ChessMove(myPosition, nextPos, null);
+            } else return null;
+        } else return new ChessMove(myPosition, nextPos, null);
+    }
+
+    private ChessMove getPawnMove(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
+        int nextRow = myPosition.getRow() + vert;
+        int nextCol = myPosition.getColumn() + horizon;
+        ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
+
+        if (isOutOfBounds(nextPos)) return null;
+        boolean occupied = isOccupied(board, nextPos);
+        if (horizon != 0){ // diagonal move
+            if (occupied && (board.getPiece(nextPos).getTeamColor() != this.getTeamColor())) { // space is occupied by enemy
+                return new ChessMove(myPosition, nextPos, null);
+            }
+        }
+        if (horizon == 0) {  // straight forward
+            if (!occupied) return new ChessMove(myPosition, nextPos, null);
+        }
+        return null;
+    }
+
+    private boolean isFirstMove(ChessGame.TeamColor teamColor, ChessPosition myPosition) {
+        switch (teamColor){
+            case WHITE -> {
+                if (myPosition.getRow() == 2)return true;
+            }
+            case BLACK -> {
+                if (myPosition.getRow() == 7)return true;
+            }
+        }
+        return false;
+    }
+
+    private Collection<ChessMove> getPawnPromotions(ChessMove newMove) {
+        ArrayList<ChessMove> promotions = new ArrayList<>();
+        promotions.add(new ChessMove(newMove.getStartPosition(), newMove.getEndPosition(), PieceType.QUEEN));
+        promotions.add(new ChessMove(newMove.getStartPosition(), newMove.getEndPosition(), PieceType.ROOK));
+        promotions.add(new ChessMove(newMove.getStartPosition(), newMove.getEndPosition(), PieceType.KNIGHT));
+        promotions.add(new ChessMove(newMove.getStartPosition(), newMove.getEndPosition(), PieceType.BISHOP));
+        return promotions;
+    }
+
+    private boolean canPromote(ChessMove newMove, ChessGame.TeamColor pieceColor) {
+        switch(pieceColor){
+            case WHITE -> {
+                if (newMove.getEndPosition().getRow() == 8) return true;
+            }
+            case BLACK -> {
+                if (newMove.getEndPosition().getRow() == 1) return true;
+            }
+        }
+        return false;
+    }
+
+    //overrides!!
     @Override
     public String toString() {
         return switch (type) {
@@ -83,69 +292,4 @@ public class ChessPiece {
         return Objects.hash(pieceColor, type);
     }
 
-    //generate lists of piece moves
-    private Collection<ChessMove> findPieceMoves(ChessBoard board, ChessPosition myPosition){
-        Collection<ChessMove> moves = new ArrayList<>();
-        switch(type) {//moves functions ,accept:  moves, board, myPosition
-            case KING:
-            case QUEEN:
-            case BISHOP:
-            case KNIGHT:
-            case ROOK:
-            case PAWN:
-        }
-        return moves;
-    }
-    //find all linear moves, can be diagonal/horizonatl/vertical lines
-    private void findLinearMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition, int directionX, int directionY){
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-
-        while(true){
-            row += directionX;
-            col += directionY;
-            ChessPosition newPosition = new ChessPosition(row, col);
-            ChessMove newMove = new ChessMove(myPosition, newPosition, null);
-
-            if (!newPosition.isInBounds()) {
-                break;
-            }
-            if (board.getPiece(newPosition) != null) {
-                if (board.getPiece(newPosition).getTeamColor() != this.getTeamColor()) {
-                    moves.add(newMove);
-                }
-                break;
-            }
-            moves.add(newMove);
-        }
-    }
-    //bishop, rook, queen moves using linear
-    private void BishopMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
-        findLinearMoves(moves, board, myPosition, 1, 1);
-        findLinearMoves(moves, board, myPosition, 1, -1);
-        findLinearMoves(moves, board, myPosition, -1, -1);
-        findLinearMoves(moves, board, myPosition, -1, 1);
-    }
-    private void RookMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
-        findLinearMoves(moves, board, myPosition, 0, 1);
-        findLinearMoves(moves, board, myPosition, 0, -1);
-        findLinearMoves(moves, board, myPosition, -1, 0);
-        findLinearMoves(moves, board, myPosition, -1, 0);
-    }
-    private void QueenMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
-        RookMoves(moves, board, myPosition);
-        BishopMoves(moves, board, myPosition);
-    }
-    //king
-    private void KingMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
-        for( int i = myPosition.getRow(); i<=myPosition.getRow()+1; i++){
-            for(int j = myPosition.getColumn(); j<=myPosition.getColumn()+1; j++){
-                ChessPosition newPosition = new ChessPosition(i, j);
-                //check that its a valid positon and moves.add it
-            }
-        }
-    }
-    //knight
-
-    //pawn
 }
