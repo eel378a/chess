@@ -70,7 +70,7 @@ public class ChessPiece {
                                 case BLACK -> extraMove = getPawnMove(board, myPosition, direction[0] - 1, direction[1]);
                             }
                         }
-                        //if (newMove != null) moves.add(newMove);
+                        //if (newMove != null) moves.add(newMove); //this was causing the problem!!
                         if (extraMove != null) moves.add(extraMove);
                     }
 
