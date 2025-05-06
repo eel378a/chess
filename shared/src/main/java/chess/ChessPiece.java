@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -51,7 +52,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        return findPieceMoves(board, myPosition, true);
     }
 
     @Override
@@ -81,4 +82,63 @@ public class ChessPiece {
     public int hashCode() {
         return Objects.hash(pieceColor, type);
     }
+
+    //generate lists of piece moves
+    private Collection<ChessMove> findPieceMoves(ChessBoard board, ChessPosition myPosition){
+        Collection<ChessMove> moves = new ArrayList<>();
+        switch(type) {//moves functions ,accept:  moves, board, myPosition
+            case KING:
+            case QUEEN:
+            case BISHOP:
+            case KNIGHT:
+            case ROOK:
+            case PAWN:
+        }
+        return moves;
+    }
+    //find all linear moves, can be diagonal/horizonatl/vertical lines
+    private void findLinearMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition, int directionX, int directionY){
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+
+        while(true){
+            row += directionX;
+            col += directionY;
+            ChessPosition newPosition = new ChessPosition(row, col);
+            ChessMove newMove = new ChessMove(myPosition, newPosition, null);
+
+            if (!newPosition.isInBounds()) {
+                break;
+            }
+            if (board.getPiece(newPosition) != null) {
+                if (board.getPiece(newPosition).getTeamColor() != this.getTeamColor()) {
+                    moves.add(newMove);
+                }
+                break;
+            }
+            moves.add(newMove);
+        }
+    }
+    //bishop, rook, queen moves using linear
+    private void BishopMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
+        findLinearMoves(moves, board, myPosition, 1, 1);
+        findLinearMoves(moves, board, myPosition, 1, -1);
+        findLinearMoves(moves, board, myPosition, -1, -1);
+        findLinearMoves(moves, board, myPosition, -1, 1);
+    }
+    private void RookMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
+        findLinearMoves(moves, board, myPosition, 0, 1);
+        findLinearMoves(moves, board, myPosition, 0, -1);
+        findLinearMoves(moves, board, myPosition, -1, 0);
+        findLinearMoves(moves, board, myPosition, -1, 0);
+    }
+    private void QueenMoves(Collection<ChessMove> moves, ChessBoard board, ChessPosition myPosition){
+        RookMoves(moves, board, myPosition);
+        BishopMoves(moves, board, myPosition);
+    }
+    //king
+
+    //knight
+
+    //pawn
 }

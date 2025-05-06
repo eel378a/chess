@@ -1,5 +1,6 @@
 package chess;
 
-public class THEcalculator {
+import java.util.Collection;
 
+public class THEcalculator {
 }

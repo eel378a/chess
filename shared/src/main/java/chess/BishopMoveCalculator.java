@@ -15,7 +15,6 @@ public class BishopMoveCalculator extends THEcalculator{
     }
 
     //override for collection for chessMove array?? put @Override here??
-    //@Override
     public Collection<ChessMove> pieceMoves(){
         Collection<ChessMove> array = new ArrayList<>();
         int row = position.getRow();
