@@ -168,12 +168,9 @@ public class ChessPiece {
     }
 
     private boolean isOutOfBounds(ChessPosition position) {
-        if (position.getRow() <= 0 || position.getRow() > 8 || position.getColumn() <= 0 || position.getColumn() > 8) {
-            return true;  // next position is out of bounds
-        }
-        else return false;  // next position is within bounds
-    }
+        return position.getRow() <= 0 || position.getRow() > 8 || position.getColumn() <= 0 || position.getColumn() > 8;
 
+    }
 
     private Collection<ChessMove> findLinearMoves(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
         ArrayList<ChessMove> possibleMoves = new ArrayList<>();
@@ -187,14 +184,13 @@ public class ChessPiece {
             if (spaceIsFull(board, nextPos)) {
                 if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
                     possibleMoves.add(new ChessMove(myPosition, nextPos, null));
-                    break;
-                } else break;
+                }//if occupied by own team, break
+                break;
             } else possibleMoves.add(new ChessMove(myPosition, nextPos, null));
         }
         return possibleMoves;
     }
-
-    //pawn stuff
+    //king and knight, one move only.
     private ChessMove getOneMove(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
         int nextRow = myPosition.getRow() + vert;
         int nextCol = myPosition.getColumn() + horizon;
@@ -209,6 +205,7 @@ public class ChessPiece {
         } else return new ChessMove(myPosition, nextPos, null);
     }
 
+    //pawn stuff
     private ChessMove getPawnMove(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
         int nextRow = myPosition.getRow() + vert;
         int nextCol = myPosition.getColumn() + horizon;
