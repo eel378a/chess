@@ -55,7 +55,7 @@ public class ChessPiece {
         Collection<ChessMove> moves = new ArrayList<>();
         switch (type) {
             case PAWN -> {
-                int[][] directions = getDirections(type);
+                int[][] directions = availableDirections(type);
                 assert directions != null;
                 for (int[] direction : directions) {
                     ChessMove newMove;
@@ -70,10 +70,8 @@ public class ChessPiece {
                                 case BLACK -> extraMove = getPawnMove(board, myPosition, direction[0] - 1, direction[1]);
                             }
                         }
-                        //if (newMove != null) moves.add(newMove); //this was causing the problem!!
                         if (extraMove != null) moves.add(extraMove);
                     }
-
                     if (newMove != null){
                         if (canPromote(newMove, pieceColor)) {
                             moves.addAll(getPawnPromotions(newMove));
@@ -82,14 +80,14 @@ public class ChessPiece {
                 }
             }
             case QUEEN, BISHOP, ROOK -> {
-                int[][] directions = getDirections(type);
+                int[][] directions = availableDirections(type);
                 assert directions != null; //since it was yelling at me that this could be an issue if not asserted
                 for (int[] direction : directions) {
                     moves.addAll(findLinearMoves(board, myPosition, direction[0], direction[1]));
                 }
             }
             case KING, KNIGHT -> { // both move only one
-                int[][] directions = getDirections(type);
+                int[][] directions = availableDirections(type);
                 assert directions != null;
                 for (int[] direction : directions) {
                     ChessMove newMove = getOneMove(board, myPosition, direction[0], direction[1]);
@@ -99,8 +97,8 @@ public class ChessPiece {
         }
         return moves;
     }
-    //additional functions. getDirections, isOccupied, isOutofBounds, and findLinear, and all the annoying pawn stuff
-    private int[][] getDirections(PieceType type) {
+    //additional functions. availableDirections, spaceIsFull, isOutofBounds, and findLinear, and all the annoying pawn stuff
+    private int[][] availableDirections(PieceType type) {
         switch (type) {
             case KING, QUEEN -> { //can go all directions
                 return new int[][]{
@@ -165,7 +163,7 @@ public class ChessPiece {
         return null;
     }
 
-    private boolean isOccupied (ChessBoard board, ChessPosition newPos){
+    private boolean spaceIsFull(ChessBoard board, ChessPosition newPos){
         return board.getPiece(newPos) != null;
     }
 
@@ -179,15 +177,14 @@ public class ChessPiece {
 
     private Collection<ChessMove> findLinearMoves(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
         ArrayList<ChessMove> possibleMoves = new ArrayList<>();
-
-        for (int i = 1; i < 8; i++) {  // loops through all squares in a straight line (including diagonals?)
+        for (int i = 1; i < 8; i++) {  // loops through all squares in a straight line
             int nextRow = myPosition.getRow() + (i * vert);
             int nextCol = myPosition.getColumn() + (i * horizon);
             ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
 
-            if (isOutOfBounds(nextPos)) break; // out of bounds
+            if (isOutOfBounds(nextPos)) break; //cuz it's out of bounds
 
-            if (isOccupied(board, nextPos)) {
+            if (spaceIsFull(board, nextPos)) {
                 if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
                     possibleMoves.add(new ChessMove(myPosition, nextPos, null));
                     break;
@@ -198,14 +195,14 @@ public class ChessPiece {
     }
 
     //pawn stuff
-    private ChessMove getOneMove(ChessBoard board, ChessPosition myPosition, int verticalDir, int horizontalDir) {
-        int nextRow = myPosition.getRow() + verticalDir;
-        int nextCol = myPosition.getColumn() + horizontalDir;
+    private ChessMove getOneMove(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
+        int nextRow = myPosition.getRow() + vert;
+        int nextCol = myPosition.getColumn() + horizon;
         ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
 
         if (isOutOfBounds(nextPos)) return null;
 
-        if (isOccupied(board, nextPos)) {
+        if (spaceIsFull(board, nextPos)) {
             if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
                 return new ChessMove(myPosition, nextPos, null);
             } else return null;
@@ -215,17 +212,17 @@ public class ChessPiece {
     private ChessMove getPawnMove(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
         int nextRow = myPosition.getRow() + vert;
         int nextCol = myPosition.getColumn() + horizon;
-        ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
+        ChessPosition nextPosition = new ChessPosition(nextRow, nextCol);
 
-        if (isOutOfBounds(nextPos)) return null;
-        boolean occupied = isOccupied(board, nextPos);
+        if (isOutOfBounds(nextPosition)) return null;
+        boolean occupied = spaceIsFull(board, nextPosition);
         if (horizon != 0){ // diagonal move
-            if (occupied && (board.getPiece(nextPos).getTeamColor() != this.getTeamColor())) { // space is occupied by enemy
-                return new ChessMove(myPosition, nextPos, null);
+            if (occupied && (board.getPiece(nextPosition).getTeamColor() != this.getTeamColor())) { // space is occupied by enemy
+                return new ChessMove(myPosition, nextPosition, null);
             }
         }
         if (horizon == 0) {  // straight forward
-            if (!occupied) return new ChessMove(myPosition, nextPos, null);
+            if (!occupied) return new ChessMove(myPosition, nextPosition, null);
         }
         return null;
     }
@@ -267,7 +264,7 @@ public class ChessPiece {
     @Override
     public String toString() {
         return switch (type) {
-            //  look at the statement before ?, if true return first, false return second
+            //  look at the statement before ?, if true return first, false return second (thanks, Joseph!)
             // capital is team white, lowercase is team black
             case KING -> pieceColor == ChessGame.TeamColor.WHITE ? "K" : "k";
             case QUEEN -> pieceColor == ChessGame.TeamColor.WHITE ? "Q" : "q";
