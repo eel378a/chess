@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -10,14 +11,11 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
-
-    private TeamColor teamTurn;
-    private ChessBoard board;
+    TeamColor teamTurn = TeamColor.WHITE;
+    ChessBoard board = new ChessBoard();
 
     public ChessGame() {
-        this.teamTurn = TeamColor.WHITE;
-        this.board = new ChessBoard();
-        board.resetBoard();
+        this.board.resetBoard();
     }
 
     /**
@@ -25,7 +23,6 @@ public class ChessGame {
      */
     public TeamColor getTeamTurn() {
         return teamTurn;
-        //throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -34,8 +31,16 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        this.teamTurn = team;
-        //throw new RuntimeException("Not implemented");
+        teamTurn = team;
+    }
+
+    public void swapTeamTurn() {
+        if(TeamColor.WHITE == getTeamTurn()){
+            setTeamTurn(TeamColor.BLACK);
+        }
+        else{
+            setTeamTurn(TeamColor.WHITE);
+        }
     }
 
     /**
@@ -54,17 +59,63 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = new HashSet<>(board.getPiece(startPosition).pieceMoves(board, startPosition));
+        Collection<ChessMove> checkedMoves = new HashSet<>();
+
+        for(ChessMove move : moves) {
+            ChessPiece capturedPiece = testMove(move);
+            if(!isInCheck(board.getPiece(move.getEndPosition()).getTeamColor())){
+                checkedMoves.add(move); //does this work?
+            }
+            undoTestMove(move, capturedPiece);
+        }
+
+        return checkedMoves;
+    }
+
+    public Collection<ChessMove> allValidMoves(TeamColor teamColor) {
+        Collection<ChessMove> checkedMoves = new HashSet<>();
+
+        for(int i = 1; i <= 8; i++) {
+            for(int j = 1; j <= 8; j++) {
+                if((null != board.getPiece(new ChessPosition(j, i))) &&
+                        (teamColor == board.getPiece(new ChessPosition(j, i)).getTeamColor()) ) {
+                    checkedMoves.addAll(validMoves(new ChessPosition(j, i)));
+                }
+            }
+        }
+
+        return checkedMoves;
+    }
+
+    ChessPiece testMove(ChessMove move){
+        ChessPiece capturedPiece = board.getPiece(move.getEndPosition());
+        ChessPiece movingPiece = board.getPiece(move.getStartPosition());
+        board.removePiece(move.getStartPosition());
+        board.addPiece(move.getEndPosition(), movingPiece);
+
+        return capturedPiece;
+    }
+
+    void undoTestMove(ChessMove move, ChessPiece capturedPiece){
+        ChessPiece movingPiece = board.getPiece(move.getEndPosition());
+        board.removePiece(move.getEndPosition());
+        board.addPiece(move.getStartPosition(), movingPiece);
+
+        if(capturedPiece != null){
+            board.addPiece(move.getEndPosition(), capturedPiece);
+        }
     }
 
     /**
      * Makes a move in a chess game
      *
-     * @param move chess move to perform
+     * @param move chess move to preform
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         throw new RuntimeException("Not implemented");
+
     }
 
     /**
@@ -105,7 +156,6 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         this.board = board;
-        //throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -115,25 +165,26 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
-        //throw new RuntimeException("Not implemented");
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ChessGame chessGame = (ChessGame) o;
-        return Objects.equals(board, chessGame.board) && teamTurn == chessGame.teamTurn;
+        return teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board);
     }
 
     @Override
     public int hashCode() {
-        return 71 * Objects.hash(board, teamTurn);
-        //don't completely understand this part yet; should reread in the section on hash overrides in phase 0
-        //71 is a solid prime though. other examples have been done w 31 too
+        return Objects.hash(teamTurn, board);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "activePlayer=" + teamTurn +
+                ", chessBoard=" + board +
+                '}';
     }
 }
