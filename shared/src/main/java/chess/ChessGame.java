@@ -118,5 +118,22 @@ public class ChessGame {
         //throw new RuntimeException("Not implemented");
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return Objects.equals(board, chessGame.board) && teamTurn == chessGame.teamTurn;
+    }
 
+    @Override
+    public int hashCode() {
+        return 71 * Objects.hash(board, teamTurn);
+        //don't completely understand this part yet; should reread in the section on hash overrides in phase 0
+        //71 is a solid prime though. other examples have been done w 31 too
+    }
 }
