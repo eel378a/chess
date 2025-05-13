@@ -59,17 +59,19 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        //get and store all legal moves
         Collection<ChessMove> moves = new HashSet<>(board.getPiece(startPosition).pieceMoves(board, startPosition));
         Collection<ChessMove> checkedMoves = new HashSet<>();
-
+        //testMove(move) makes the move on the board temporarily and returns the captured piece (if any), sees if that
+        //move puts us in check, and then undoes the testMove to return board to the original state
         for(ChessMove move : moves) {
             ChessPiece capturedPiece = testMove(move);
             if(!isInCheck(board.getPiece(move.getEndPosition()).getTeamColor())){
-                checkedMoves.add(move); //does this work?
+                checkedMoves.add(move);
             }
             undoTestMove(move, capturedPiece);
         }
-
+        //return legal moves :)
         return checkedMoves;
     }
 
@@ -123,7 +125,7 @@ public class ChessGame {
             throw new InvalidMoveException("Not your turn bub >:(");
         }
 
-        //check if real move
+        //is a valid move??
         Collection<ChessMove> validMovesList = validMoves(startPosition);
         if (!validMovesList.stream().anyMatch(move::equals)) {
             throw new InvalidMoveException("Illegal Move");
@@ -148,7 +150,7 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = new ChessPosition(1, 1);
-        Collection<ChessMove> oponentMoves = new HashSet<>();
+        Collection<ChessMove> opponentMoves = new HashSet<>();
         boolean inCheck = false;
         for(int i = 1; i <= 8; i++) {
             for(int j = 1; j <= 8; j++) {
@@ -159,11 +161,11 @@ public class ChessGame {
                 }
                 if((null != board.getPiece(new ChessPosition(j, i))) &&
                         (teamColor != board.getPiece(new ChessPosition(j, i)).getTeamColor()) ) {
-                    oponentMoves.addAll(board.getPiece(new ChessPosition(j, i)).pieceMoves(board, new ChessPosition(j, i)));
+                    opponentMoves.addAll(board.getPiece(new ChessPosition(j, i)).pieceMoves(board, new ChessPosition(j, i)));
                 }
             }
         }
-        for(ChessMove move : oponentMoves) {
+        for(ChessMove move : opponentMoves) {
             if(kingPosition.equals(move.getEndPosition())){
                 inCheck = true;
                 break;
@@ -242,9 +244,6 @@ public class ChessGame {
 
     @Override
     public String toString() {
-        return "ChessGame{" +
-                "activePlayer=" + teamTurn +
-                ", chessBoard=" + board +
-                '}';
+        return "ChessGame{teamTurn=" + teamTurn + ", chessBoard=" + board + "}";
     }
 }
