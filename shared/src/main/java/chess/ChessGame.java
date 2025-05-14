@@ -119,10 +119,10 @@ public class ChessGame {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece currentPiece = board.getPiece(startPosition);
         if(null == currentPiece){
-            throw new InvalidMoveException("must move a piece");
+            throw new InvalidMoveException("You must Move a piece");
         }
         if(getTeamTurn() != currentPiece.getTeamColor()){
-            throw new InvalidMoveException("Not your turn bub >:(");
+            throw new InvalidMoveException("It is the other team's turn");
         }
 
         //is a valid move??
