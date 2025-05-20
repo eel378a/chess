@@ -1,4 +1,3 @@
-
 package passoff.server;
 
 import chess.ChessGame;
