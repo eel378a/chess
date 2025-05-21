@@ -114,19 +114,19 @@ public class ServiceTests {
         LoginRequest loginRequest = new LoginRequest("jeff", "password");
 
         service.register(registerRequest);
-//        LoginResult loginResult = service.login(loginRequest);
-        RegisterResult registerResult = service.register(registerRequest);
+        LoginResult loginResult = service.login(loginRequest);
 
-        LogoutRequest logoutRequest = new LogoutRequest(registerResult.authToken());        EmptyResult result = service.logout(logoutRequest);
+        LogoutRequest logoutRequest = new LogoutRequest(loginResult.authToken());
+        EmptyResult result = service.logout(logoutRequest);
 
         assert result.message() == null;
-        assert users.getUser(registerResult.username()) == null;
-        assert tokens.getAuthData(registerResult.authToken()) == null;
+        assert users.getUser(loginResult.username()) == null;
+        assert tokens.getAuthData(loginResult.authToken()) == null;
     }
 
     @Test
     void logout_401() throws DataAccessException {
-        RegisterRequest registerRequest = new RegisterRequest("isaac", "password", "email");
+        RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
 
         RegisterResult registerResult = service.register(registerRequest);
 
