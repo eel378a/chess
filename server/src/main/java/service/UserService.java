@@ -73,7 +73,7 @@ public class UserService extends Service {
             }
         } else {
             result = new EmptyResult("Error: unauthorized");
-        }
-        return new EmptyResult(null);
+        }//was null here, change to result message
+        return new EmptyResult(result.message());
     }
 }
