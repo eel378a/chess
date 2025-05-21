@@ -110,10 +110,10 @@ public class ServiceTests {
 
     @Test
     void logout_200() throws DataAccessException {
-        RegisterRequest registerRequest = new RegisterRequest("isaac", "password", "email");
-        LoginRequest loginRequest = new LoginRequest("isaac", "password");
+        RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
+        LoginRequest loginRequest = new LoginRequest("jeff", "password");
 
-//        service.register(registerRequest);
+        service.register(registerRequest);
 //        LoginResult loginResult = service.login(loginRequest);
         RegisterResult registerResult = service.register(registerRequest);
 
