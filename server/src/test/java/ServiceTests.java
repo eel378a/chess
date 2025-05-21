@@ -3,14 +3,29 @@ import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.Service;
 import service.UserService;
 import requestsResults.RegisterRequest;
 import requestsResults.RegisterResult;
 
+import java.beans.beancontext.BeanContextChild;
+
 public class ServiceTests {
 
+    UserDAO users = new MemoryUserDao();
+    GameDAO games = new MemoryGameDAO();
+    AuthDAO tokens = new MemoryAuthDAO();
+
+    UserService service = new UserService(users, games, tokens);
+
+    @BeforeEach
+    void reset() {
+        service.clear();
+    }
+
+    //tests
     @Test
     void clear() throws DataAccessException {
         UserDAO users = new MemoryUserDao();
@@ -30,12 +45,12 @@ public class ServiceTests {
     }
 
     @Test
-    void register() throws DataAccessException {
-        UserDAO users = new MemoryUserDao();
-        GameDAO games = new MemoryGameDAO();
-        AuthDAO tokens = new MemoryAuthDAO();
-
-        UserService service = new UserService(users, games, tokens);
+    void register_success() throws DataAccessException {
+//        UserDAO users = new MemoryUserDao();
+//        GameDAO games = new MemoryGameDAO();
+//        AuthDAO tokens = new MemoryAuthDAO();
+//
+//        UserService service = new UserService(users, games, tokens);
         RegisterRequest request = new RegisterRequest("jeff", "password", "email");
 
         RegisterResult result = service.register(request);
@@ -43,5 +58,14 @@ public class ServiceTests {
         assert !users.listUsers().isEmpty();
         assert !tokens.listAuthTokens().isEmpty();
         assert result.userName().equals("jeff");
+    }
+
+    @Test
+    void register_400() throws DataAccessException {
+        RegisterRequest request = new RegisterRequest("", "password", "email");
+
+        RegisterResult result = service.register(request);
+
+        assert result.message().equals("Error: bad request");
     }
 }
