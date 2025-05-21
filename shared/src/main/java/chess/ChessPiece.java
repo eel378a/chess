@@ -218,7 +218,7 @@ public class ChessPiece {
         int nextCol = myPosition.getColumn() + horizon;
         ChessPosition nextPosition = new ChessPosition(nextRow, nextCol);
 
-        if (isOutOfBounds(nextPosition)) return null;
+        if (isOutOfBounds(nextPosition)) {return null;}
         boolean occupied = spaceIsFull(board, nextPosition);
         if (horizon != 0){ // diagonal move
             if (occupied && (board.getPiece(nextPosition).getTeamColor() != this.getTeamColor())) { // space is occupied by enemy
