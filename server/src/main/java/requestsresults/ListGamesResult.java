@@ -1,4 +1,4 @@
-package requestsResults;
+package requestsresults;
 
 import model.GameData;
 import java.util.Collection;

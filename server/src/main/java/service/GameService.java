@@ -7,7 +7,7 @@ import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 
-import requestsResults.*;
+import requestsresults.*;
 import chess.ChessGame;
 import model.GameData;
 

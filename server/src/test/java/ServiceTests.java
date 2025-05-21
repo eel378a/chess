@@ -9,7 +9,7 @@ import service.Service;
 import service.UserService;
 import service.GameService;
 
-import requestsResults.*;
+import requestsresults.*;
 
 
 public class ServiceTests {

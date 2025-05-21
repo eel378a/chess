@@ -1,4 +1,4 @@
-package requestsResults;
-import model.AuthData;
+package requestsresults;
+
 public record LogoutRequest(String authToken){
 }
