@@ -113,15 +113,14 @@ public class ServiceTests {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
         LoginRequest loginRequest = new LoginRequest("jeff", "password");
 
-        service.register(registerRequest);
-        LoginResult loginResult = service.login(loginRequest);
+        RegisterResult registerResult = service.register(registerRequest);
 
-        LogoutRequest logoutRequest = new LogoutRequest(loginResult.authToken());
+        LogoutRequest logoutRequest = new LogoutRequest(registerResult.authToken());
         EmptyResult result = service.logout(logoutRequest);
 
         assert result.message() == null;
-        assert users.getUser(loginResult.username()) == null;
-        assert tokens.getAuthData(loginResult.authToken()) == null;
+        assert users.getUser(registerResult.username()) == null;
+        assert tokens.getAuthData(registerResult.authToken()) == null;
     }
 
     @Test
