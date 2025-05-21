@@ -65,4 +65,5 @@ public class ChessMove {
         ChessMove otro = (ChessMove) obj;
         return Objects.equals(start, otro.start) && Objects.equals(end,otro.end) && Objects.equals(promotionPiece, otro.promotionPiece);
     }
+
 }

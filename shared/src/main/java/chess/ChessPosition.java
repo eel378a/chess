@@ -49,4 +49,5 @@ public class ChessPosition {
         ChessPosition otro = (ChessPosition) obj;
         return row == otro.row && col == otro.col;
     }
+
 }
