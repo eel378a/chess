@@ -70,12 +70,12 @@ public class ChessPiece {
                                 case BLACK -> extraMove = getPawnMove(board, myPosition, direction[0] - 1, direction[1]);
                             }
                         }
-                        if (extraMove != null) moves.add(extraMove);
+                        if (extraMove != null) {moves.add(extraMove);}
                     }
                     if (newMove != null){
                         if (canPromote(newMove, pieceColor)) {
                             moves.addAll(getPawnPromotions(newMove));
-                        } else moves.add(newMove);
+                        } else {moves.add(newMove);}
                     }
                 }
             }
@@ -91,7 +91,7 @@ public class ChessPiece {
                 assert directions != null;
                 for (int[] direction : directions) {
                     ChessMove newMove = getOneMove(board, myPosition, direction[0], direction[1]);
-                    if (newMove != null) moves.add(newMove);
+                    if (newMove != null) {moves.add(newMove);}
                 }
             }
         }
@@ -179,14 +179,16 @@ public class ChessPiece {
             int nextCol = myPosition.getColumn() + (i * horizon);
             ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
 
-            if (isOutOfBounds(nextPos)) break; //cuz it's out of bounds
+            if (isOutOfBounds(nextPos)) {break;} //cuz it's out of bounds
 
             if (spaceIsFull(board, nextPos)) {
                 if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
                     possibleMoves.add(new ChessMove(myPosition, nextPos, null));
                 }//if occupied by own team, break
                 break;
-            } else possibleMoves.add(new ChessMove(myPosition, nextPos, null));
+            } else {
+                possibleMoves.add(new ChessMove(myPosition, nextPos, null));
+            }
         }
         return possibleMoves;
     }
@@ -196,13 +198,19 @@ public class ChessPiece {
         int nextCol = myPosition.getColumn() + horizon;
         ChessPosition nextPos = new ChessPosition(nextRow, nextCol);
 
-        if (isOutOfBounds(nextPos)) return null;
+        if (isOutOfBounds(nextPos)) {
+            return null;
+        }
 
         if (spaceIsFull(board, nextPos)) {
             if (board.getPiece(nextPos).getTeamColor() != this.getTeamColor()){ // space is occupied by enemy
                 return new ChessMove(myPosition, nextPos, null);
-            } else return null;
-        } else return new ChessMove(myPosition, nextPos, null);
+            } else {
+                return null;
+            }
+        } else {
+            return new ChessMove(myPosition, nextPos, null);
+        }
     }
 
     //pawn stuff
@@ -219,7 +227,9 @@ public class ChessPiece {
             }
         }
         if (horizon == 0) {  // straight forward
-            if (!occupied) return new ChessMove(myPosition, nextPosition, null);
+            if (!occupied) {
+                return new ChessMove(myPosition, nextPosition, null);
+            }
         }
         return null;
     }
@@ -227,10 +237,14 @@ public class ChessPiece {
     private boolean isFirstMove(ChessGame.TeamColor teamColor, ChessPosition myPosition) {
         switch (teamColor){
             case WHITE -> {
-                if (myPosition.getRow() == 2)return true;
+                if (myPosition.getRow() == 2){
+                    return true;
+                }
             }
             case BLACK -> {
-                if (myPosition.getRow() == 7)return true;
+                if (myPosition.getRow() == 7){
+                    return true;
+                }
             }
         }
         return false;
@@ -248,10 +262,14 @@ public class ChessPiece {
     private boolean canPromote(ChessMove newMove, ChessGame.TeamColor pieceColor) {
         switch(pieceColor){
             case WHITE -> {
-                if (newMove.getEndPosition().getRow() == 8) return true;
+                if (newMove.getEndPosition().getRow() == 8) {
+                    return true;
+                }
             }
             case BLACK -> {
-                if (newMove.getEndPosition().getRow() == 1) return true;
+                if (newMove.getEndPosition().getRow() == 1) {
+                    return true;
+                }
             }
         }
         return false;
@@ -274,9 +292,9 @@ public class ChessPiece {
 
     @Override
     public boolean equals(Object obj) {
-        if(this ==obj) return true;
-        if(obj == null) return false;
-        if(getClass() != obj.getClass()) return false;
+        if(this ==obj) {return true;}
+        if(obj == null) {return false;}
+        if(getClass() != obj.getClass()) {return false;}
         ChessPiece otro = (ChessPiece) obj;
         return pieceColor == otro.pieceColor && type == otro.type;
     }

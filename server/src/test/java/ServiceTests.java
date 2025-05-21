@@ -8,10 +8,6 @@ import org.junit.jupiter.api.Test;
 import service.Service;
 import service.UserService;
 import service.GameService;
-//import requestsResults.RegisterRequest;
-//import requestsResults.RegisterResult;
-//import requestsResults.LoginRequest;
-//import requestsResults.LoginResult;
 
 import requestsResults.*;
 

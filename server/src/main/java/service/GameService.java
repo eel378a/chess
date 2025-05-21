@@ -6,12 +6,8 @@ import java.util.Collection;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
-//import requestsResults.CreateGameRequest;
-//import requestsResults.CreateGameResult;
-//import requestsResults.ListGamesRequest;
-//import requestsResults.ListGamesResult;
-import requestsResults.*;
 
+import requestsResults.*;
 import chess.ChessGame;
 import model.GameData;
 
