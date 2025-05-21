@@ -10,6 +10,8 @@ import requestsResults.EmptyResult;
 import requestsResults.LogoutRequest;
 import requestsResults.CreateGameRequest;
 import requestsResults.CreateGameResult;
+import requestsResults.ListGamesResult;
+import requestsResults.ListGamesRequest;
 import service.Service;
 import service.UserService;
 import service.GameService;
@@ -54,6 +56,13 @@ public class HttpHandler {
     public Object createGame(Request req, Response res) {
         CreateGameRequest request = new Gson().fromJson(req.body(), CreateGameRequest.class);
         CreateGameResult result = gameService.createGame(request, req.headers("authorization"));
+        res.status(getStatusCodeFromMessage(result.message()));
+        return new Gson().toJson(result);
+    }
+
+    public Object listGames(Request req, Response res) {
+        ListGamesRequest request = new ListGamesRequest(req.headers("authorization"));
+        ListGamesResult result = gameService.listGame(request);
         res.status(getStatusCodeFromMessage(result.message()));
         return new Gson().toJson(result);
     }
