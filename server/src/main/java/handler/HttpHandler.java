@@ -12,6 +12,7 @@ import requestsResults.CreateGameRequest;
 import requestsResults.CreateGameResult;
 import requestsResults.ListGamesResult;
 import requestsResults.ListGamesRequest;
+import requestsResults.JoinGameRequest;
 import service.Service;
 import service.UserService;
 import service.GameService;
@@ -66,6 +67,14 @@ public class HttpHandler {
         res.status(getStatusCodeFromMessage(result.message()));
         return new Gson().toJson(result);
     }
+
+    public Object joinGame(Request req, Response res) {
+        JoinGameRequest request = new Gson().fromJson(req.body(), JoinGameRequest.class);
+        EmptyResult result = gameService.joinGame(request, req.headers("authorization"));
+        res.status(getStatusCodeFromMessage(result.message()));
+        return new Gson().toJson(result);
+    }
+
     private int getStatusCodeFromMessage(String message) {
         int status;
         if (message == null) {

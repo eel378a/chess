@@ -6,16 +6,17 @@ import java.util.Collection;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
-import requestsResults.CreateGameRequest;
-import requestsResults.CreateGameResult;
-import requestsResults.ListGamesRequest;
-import requestsResults.ListGamesResult;
+//import requestsResults.CreateGameRequest;
+//import requestsResults.CreateGameResult;
+//import requestsResults.ListGamesRequest;
+//import requestsResults.ListGamesResult;
+import requestsResults.*;
 
 import chess.ChessGame;
 import model.GameData;
 
 public class GameService extends Service {
-    private int newGameID = 0;
+    private int newGameID = 1;
     public GameService(UserDAO users, GameDAO games, AuthDAO tokens) {
         super(users, games, tokens);
     }
@@ -26,7 +27,7 @@ public class GameService extends Service {
             result = new CreateGameResult(null, "Error: bad request");
         } else if (isValidAuthToken(authToken)) {
             try {
-                games.addGame(new GameData(newGameID, "", "", request.gameName(), new ChessGame()));
+                games.addGame(new GameData(newGameID, null, null, request.gameName(), new ChessGame()));
                 result = new CreateGameResult(newGameID, null);
                 newGameID++;
             } catch (Exception e) {
@@ -60,5 +61,55 @@ public class GameService extends Service {
             newGameList.add(new GameData(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), null));
         }
         return newGameList;
+    }
+
+    //join game
+    public EmptyResult joinGame(JoinGameRequest request, String authToken) {
+        EmptyResult result;
+        if (!isValidAuthToken(authToken)) {
+            result = new EmptyResult("Error: unauthorized");
+        } else if (!isValidColor(request.playerColor()) || !isValidGameID(request.gameID())) {
+            result = new EmptyResult("Error: bad request");
+        } else if (!playerColorAvailable(request)) {
+            result = new EmptyResult("Error: already taken");
+        } else {
+            result = joinGameWithValidRequest(request, authToken);
+        }
+        return result;
+    }
+
+    //valid entries, player colors and game ID
+    private boolean isValidColor(String playerColor) {
+        return (playerColor != null) && (playerColor.equals("WHITE") || playerColor.equals("BLACK"));
+    }
+    private boolean isValidGameID(int gameID) {
+        return games.getGame(gameID) != null;
+    }
+    private boolean playerColorAvailable(JoinGameRequest request) {
+        GameData gameData = games.getGame(request.gameID());
+        if (request.playerColor().equals("WHITE")) {
+            return gameData.whiteUsername()==null;
+        } else {
+            return gameData.blackUsername()==null;
+        }
+    }
+    private EmptyResult joinGameWithValidRequest(JoinGameRequest request, String authToken) {
+        EmptyResult result;
+        try {
+            GameData gameData = games.getGame(request.gameID());
+            String userName = tokens.getAuthData(authToken).username();
+            if (request.playerColor().equals("WHITE")) {
+                games.addGame(new GameData(gameData.gameID(), userName, gameData.blackUsername(),
+                        gameData.gameName(), gameData.game()));
+            } else {
+                games.addGame(new GameData(gameData.gameID(), gameData.whiteUsername(), userName,
+                        gameData.gameName(), gameData.game()));
+            }
+            result = new EmptyResult(null);
+        } catch (Exception e) {
+//                result = new CreateGameResult(null, "Error: ".concat(e.getMessage()));
+            result = new EmptyResult("Error: ".concat(e.getMessage()));
+        }
+        return result;
     }
 }

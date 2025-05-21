@@ -14,7 +14,7 @@ public class UserService extends Service {
 
     public RegisterResult register(RegisterRequest request) {
         RegisterResult result;
-        if (!isValidRequest(request)) {
+        if (!isValidRegReq(request)) {
             result = new RegisterResult(null, null, "Error: bad request");
         }else if(!isUniqueUsername(request.username())) {
             result = new RegisterResult(null, null, "Error: already taken");
@@ -31,8 +31,9 @@ public class UserService extends Service {
         return result;
     }
 
-    private boolean isValidRequest(RegisterRequest request) {
-        return !request.username().isBlank() && !request.password().isBlank() && !request.email().isBlank();
+    private boolean isValidRegReq(RegisterRequest request) {
+        return (request.username() != null) && (request.password() != null) && (request.email() != null) &&
+                !request.username().isBlank() && !request.password().isBlank() && !request.email().isBlank();
     }
 
     private boolean isUniqueUsername(String userName) {

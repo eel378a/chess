@@ -50,7 +50,7 @@ public class ServiceTests {
     }
 
     @Test
-    void register_200() throws DataAccessException {
+    void register200() throws DataAccessException {
 //        UserDAO users = new MemoryUserDao();
 //        GameDAO games = new MemoryGameDAO();
 //        AuthDAO tokens = new MemoryAuthDAO();
@@ -66,7 +66,7 @@ public class ServiceTests {
     }
 
     @Test
-    void register_400() throws DataAccessException {
+    void register400() throws DataAccessException {
         RegisterRequest request = new RegisterRequest("", "password", "email");
 
         RegisterResult result = userService.register(request);
@@ -75,7 +75,7 @@ public class ServiceTests {
     }
 
     @Test
-    void register_403() throws DataAccessException {
+    void register403() throws DataAccessException {
         RegisterRequest requestOne = new RegisterRequest("name", "password", "email");
         RegisterRequest requestTwo = new RegisterRequest("name", "password", "email");
 
@@ -87,7 +87,7 @@ public class ServiceTests {
     }
 
     @Test
-    void login_200() throws DataAccessException {
+    void login200() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
         LoginRequest loginRequest = new LoginRequest("jeff", "password");
 
@@ -99,7 +99,7 @@ public class ServiceTests {
     }
 
     @Test
-    void login_401() throws DataAccessException {
+    void login401() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
         LoginRequest loginRequest = new LoginRequest("jeff", "password1");
 
@@ -111,7 +111,7 @@ public class ServiceTests {
     }
 
     @Test
-    void logout_200() throws DataAccessException {
+    void logout200() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
         LoginRequest loginRequest = new LoginRequest("jeff", "password");
 
@@ -126,10 +126,9 @@ public class ServiceTests {
     }
 
     @Test
-    void logout_401() throws DataAccessException {
+    void logout401() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
-
-        RegisterResult registerResult = userService.register(registerRequest);
+        userService.register(registerRequest);
 
         LogoutRequest logoutRequest = new LogoutRequest("invalid authToken");
         EmptyResult result = userService.logout(logoutRequest);
@@ -138,7 +137,7 @@ public class ServiceTests {
     }
 
     @Test
-    void createGame_200() throws DataAccessException {
+    void createGame200() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("name", "password", "email");
 
         RegisterResult registerResult = userService.register(registerRequest);
@@ -151,7 +150,7 @@ public class ServiceTests {
         assert games.listGames().size() == 1;
     }
     @Test
-    void createGame_400() throws DataAccessException {
+    void createGame400() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
 
         RegisterResult registerResult = userService.register(registerRequest);
@@ -162,10 +161,9 @@ public class ServiceTests {
         assert result.message().equals("Error: bad request");
     }
     @Test
-    void createGame_401() throws DataAccessException {
+    void createGame401() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("name", "password", "email");
-
-        RegisterResult registerResult = userService.register(registerRequest);
+        userService.register(registerRequest);
 
         CreateGameRequest createGameRequest = new CreateGameRequest("new game");
         CreateGameResult result = gameService.createGame(createGameRequest, "invalid authToken");
@@ -174,7 +172,7 @@ public class ServiceTests {
     }
 
     @Test
-    void listGames_200() throws DataAccessException {
+    void listGames200() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
 
         RegisterResult registerResult = userService.register(registerRequest);
@@ -189,13 +187,76 @@ public class ServiceTests {
         assert result.games().size() == 1;
     }
     @Test
-    void listGames_401() throws DataAccessException {
+    void listGames401() throws DataAccessException {
         RegisterRequest registerRequest = new RegisterRequest("geoffery", "password", "email");
-        RegisterResult registerResult = userService.register(registerRequest);
+        userService.register(registerRequest);
 
         ListGamesRequest listGamesRequest = new ListGamesRequest("invalid authToken");
         ListGamesResult result = gameService.listGame(listGamesRequest);
 
         assert result.message().equals("Error: unauthorized");
     }
+//join game
+
+    @Test
+    void joinGame200() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("billy", "password", "email");
+        RegisterResult registerResult = userService.register(registerRequest);
+
+        CreateGameRequest createGameRequest = new CreateGameRequest("this Game");
+        CreateGameResult createGameResult = gameService.createGame(createGameRequest, registerResult.authToken());
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("WHITE", createGameResult.gameID());
+        EmptyResult result = gameService.joinGame(joinGameRequest, registerResult.authToken());
+
+        assert result.message() == null;
+        assert games.getGame(createGameResult.gameID()).whiteUsername().equals("billy");
+    }
+    @Test
+    void joinGame401() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("sally", "password", "email");
+        userService.register(registerRequest);
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("BLACK", 10);
+        EmptyResult result = gameService.joinGame(joinGameRequest, "invalid authToken");
+
+        assert result.message().equals("Error: unauthorized");
+    }
+    @Test
+    void joinGame400badGame() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("silly", "password", "email");
+        RegisterResult registerResult = userService.register(registerRequest);
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("WHITE", 72);
+        EmptyResult result = gameService.joinGame(joinGameRequest, registerResult.authToken());
+
+        assert result.message().equals("Error: bad request");
+    }
+
+    @Test
+    void joinGame400badColor() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("susie", "password", "email");
+        RegisterResult registerResult = userService.register(registerRequest);
+
+        CreateGameRequest createGameRequest = new CreateGameRequest("new game");
+        CreateGameResult createGameResult = gameService.createGame(createGameRequest, registerResult.authToken());
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("PURPLE", createGameResult.gameID());
+        EmptyResult result = gameService.joinGame(joinGameRequest, registerResult.authToken());
+
+        assert result.message().equals("Error: bad request");
+    }
+    @Test
+    void joinGame403() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("susie", "password", "email");
+        RegisterResult registerResult = userService.register(registerRequest);
+
+        games.addGame(new GameData(0, "jack", "jill", "a game", new ChessGame()));
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("WHITE", 0);
+        EmptyResult result = gameService.joinGame(joinGameRequest, registerResult.authToken());
+
+        assert result.message().equals("Error: already taken");
+    }
+
 }
