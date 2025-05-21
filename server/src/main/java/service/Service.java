@@ -6,8 +6,6 @@ import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import model.AuthData;
-import requestsResults.RegisterRequest;
-import requestsResults.RegisterResult;
 
 public class Service {
     protected UserDAO users;
@@ -25,8 +23,13 @@ public class Service {
         games.clearGames();
         tokens.clearAuthTokens();    }
 
-    protected boolean isValidAuthToken(AuthData authData) {
-        return tokens.getAuthData(authData.authToken()).username().equals(authData.username());
+    protected boolean isValidAuthToken(String authToken) {
+        AuthData result = tokens.getAuthData(authToken);
+        if (result == null) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     protected String generateAuthToken() {

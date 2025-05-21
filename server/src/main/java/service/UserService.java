@@ -3,8 +3,7 @@ package service;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
-import requestsResults.RegisterRequest;
-import requestsResults.RegisterResult;
+import requestsResults.*;
 import model.AuthData;
 import model.UserData;
 
@@ -17,16 +16,58 @@ public class UserService extends Service {
         RegisterResult result;
         if (!isValidRequest(request)) {
             result = new RegisterResult(null, null, "Error: bad request");
-        } else {
-            users.addUser(new UserData(request.username(), request.password(), request.email()));
-            AuthData authToken = new AuthData(generateAuthToken(), request.username());
-            tokens.addAuthToken(authToken);
-            result = new RegisterResult(authToken.username(), authToken.authToken(), null);
+        }else if(!isUniqueUsername(request.username())) {
+            result = new RegisterResult(null, null, "Error: already taken");
+        }else {
+            try {
+                users.addUser(new UserData(request.username(), request.password(), request.email()));
+                AuthData authToken = new AuthData(generateAuthToken(), request.username());
+                tokens.addAuthToken(authToken);
+                result = new RegisterResult(authToken.username(), authToken.authToken(), null);
+            } catch (Exception e) {
+                result = new RegisterResult(null, null, "Error: ".concat(e.getMessage()));
+            }
         }
         return result;
     }
 
-    protected boolean isValidRequest(RegisterRequest request) {
+    private boolean isValidRequest(RegisterRequest request) {
         return !request.username().isBlank() && !request.password().isBlank() && !request.email().isBlank();
+    }
+
+    private boolean isUniqueUsername(String userName) {
+        return users.getUser(userName) == null;
+    }
+
+    public LoginResult login(LoginRequest request) {
+        LoginResult result;
+        try {
+            if (users.getUserByNameAndPassword(request.username(), request.password()) != null) {
+                String authToken = generateAuthToken();
+                tokens.addAuthToken(new AuthData(authToken, request.username()));
+                result = new LoginResult(request.username(), authToken, null);
+            } else {
+                result = new LoginResult(null, null, "Error: unauthorized");
+            }
+        } catch (Exception e) {
+            result = new LoginResult(null, null, "Error: ".concat(e.getMessage()));
+        }
+        return result;
+    }
+
+    public EmptyResult logout(LogoutRequest request) {
+        EmptyResult result;
+        try {
+            if (isValidAuthToken(request.authToken())) {
+                AuthData authData = tokens.getAuthData(request.authToken());
+                tokens.removeAuthData(authData.authToken());
+                result = new EmptyResult(null);
+            } else {
+                result = new EmptyResult("Error: unauthorized");
+            }
+        }  catch (Exception e) {
+            result = new EmptyResult("Error: ".concat(e.getMessage()));
+        }
+        return result;
     }
 }

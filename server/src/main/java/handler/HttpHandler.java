@@ -2,8 +2,12 @@ package handler;
 import com.google.gson.Gson;
 
 import dataaccess.*;
+import requestsResults.LoginRequest;
+import requestsResults.LoginResult;
 import requestsResults.RegisterRequest;
 import requestsResults.RegisterResult;
+import requestsResults.EmptyResult;
+import requestsResults.LogoutRequest;
 import service.Service;
 import service.UserService;
 import spark.Request;
@@ -22,10 +26,23 @@ public class HttpHandler {
         res.status(200);
         return "";
     }
+    public Object login(Request req, Response res) {
+        LoginRequest request = new Gson().fromJson(req.body(), LoginRequest.class);
+        LoginResult result = userService.login(request);
+        res.status(getStatusCodeFromMessage(result.message()));
+        return new Gson().toJson(result);
+    }
 
     public Object register(Request req, Response res) {
         RegisterRequest request = new Gson().fromJson(req.body(), RegisterRequest.class);
         RegisterResult result = userService.register(request);
+        res.status(getStatusCodeFromMessage(result.message()));
+        return new Gson().toJson(result);
+    }
+
+    public Object logout(Request req, Response res) {
+        LogoutRequest request = new LogoutRequest(req.headers("authorization"));
+        EmptyResult result = userService.logout(request);
         res.status(getStatusCodeFromMessage(result.message()));
         return new Gson().toJson(result);
     }

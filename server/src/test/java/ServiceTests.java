@@ -7,10 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.Service;
 import service.UserService;
-import requestsResults.RegisterRequest;
-import requestsResults.RegisterResult;
+//import requestsResults.RegisterRequest;
+//import requestsResults.RegisterResult;
+//import requestsResults.LoginRequest;
+//import requestsResults.LoginResult;
 
-import java.beans.beancontext.BeanContextChild;
+import requestsResults.*;
+
 
 public class ServiceTests {
 
@@ -45,7 +48,7 @@ public class ServiceTests {
     }
 
     @Test
-    void register_success() throws DataAccessException {
+    void register_200() throws DataAccessException {
 //        UserDAO users = new MemoryUserDao();
 //        GameDAO games = new MemoryGameDAO();
 //        AuthDAO tokens = new MemoryAuthDAO();
@@ -57,7 +60,7 @@ public class ServiceTests {
 
         assert !users.listUsers().isEmpty();
         assert !tokens.listAuthTokens().isEmpty();
-        assert result.userName().equals("jeff");
+        assert result.username().equals("jeff");
     }
 
     @Test
@@ -67,5 +70,69 @@ public class ServiceTests {
         RegisterResult result = service.register(request);
 
         assert result.message().equals("Error: bad request");
+    }
+
+    @Test
+    void register_403() throws DataAccessException {
+        RegisterRequest requestOne = new RegisterRequest("name", "password", "email");
+        RegisterRequest requestTwo = new RegisterRequest("name", "password", "email");
+
+        service.register(requestOne);
+        RegisterResult result = service.register(requestTwo);
+
+        assert result.message().equals("Error: already taken");
+        assert users.listUsers().size() == 1;
+    }
+
+    @Test
+    void login_200() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
+        LoginRequest loginRequest = new LoginRequest("jeff", "password");
+
+        service.register(registerRequest);
+        LoginResult result = service.login(loginRequest);
+
+        assert result.username().equals("jeff");
+        assert !result.authToken().isBlank();
+    }
+
+    @Test
+    void login_401() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("jeff", "password", "email");
+        LoginRequest loginRequest = new LoginRequest("jeff", "password1");
+
+        service.register(registerRequest);
+        LoginResult result = service.login(loginRequest);
+
+        assert result.username() == null;
+        assert result.message().equals("Error: unauthorized");
+    }
+
+    @Test
+    void logout_200() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("isaac", "password", "email");
+        LoginRequest loginRequest = new LoginRequest("isaac", "password");
+
+//        service.register(registerRequest);
+//        LoginResult loginResult = service.login(loginRequest);
+        RegisterResult registerResult = service.register(registerRequest);
+
+        LogoutRequest logoutRequest = new LogoutRequest(registerResult.authToken());        EmptyResult result = service.logout(logoutRequest);
+
+        assert result.message() == null;
+        assert users.getUser(registerResult.username()) == null;
+        assert tokens.getAuthData(registerResult.authToken()) == null;
+    }
+
+    @Test
+    void logout_401() throws DataAccessException {
+        RegisterRequest registerRequest = new RegisterRequest("isaac", "password", "email");
+
+        RegisterResult registerResult = service.register(registerRequest);
+
+        LogoutRequest logoutRequest = new LogoutRequest("invalid authToken");
+        EmptyResult result = service.logout(logoutRequest);
+
+        assert result.message().equals("Error: unauthorized");
     }
 }
