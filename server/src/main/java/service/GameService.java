@@ -13,7 +13,9 @@ public class GameService extends Service {
 
     public CreateGameResult createGame(CreateGameRequest request, String authToken) {
         CreateGameResult result;
-        if (isValidAuthToken(authToken)) {
+        if (request.gameName().isBlank()) {
+            result = new CreateGameResult(null, "Error: bad request");
+        } else if (isValidAuthToken(authToken)) {
             throw new RuntimeException("Not implemented");
         } else {
             result = new CreateGameResult(null, "Error: unauthorized");
