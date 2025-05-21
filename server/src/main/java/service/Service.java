@@ -22,7 +22,5 @@ public class Service {
         games.clearGames();
         tokens.clearAuthTokens();    }
 
-    public RegisterResult register(RegisterRequest request) {
-        throw new RuntimeException("Not Implemented");
-    }
+
 }

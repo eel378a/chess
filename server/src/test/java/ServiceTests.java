@@ -35,7 +35,7 @@ public class ServiceTests {
         GameDAO games = new MemoryGameDAO();
         AuthDAO tokens = new MemoryAuthDAO();
 
-        Service service = new Service(users, games, tokens);
+        UserService service = new UserService(users, games, tokens);
         RegisterRequest request = new RegisterRequest("jeff", "password", "email");
 
         RegisterResult result = service.register(request);
