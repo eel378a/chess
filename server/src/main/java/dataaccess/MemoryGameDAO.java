@@ -20,4 +20,9 @@ public class MemoryGameDAO implements GameDAO {
     public Collection<GameData> listGames() {
         return games.values();
     }
+
+    @Override
+    public GameData getGame(int gameID) {
+        return games.get(gameID);
+    }
 }

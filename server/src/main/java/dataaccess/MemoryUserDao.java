@@ -39,4 +39,9 @@ public class MemoryUserDao implements UserDAO {
             return null;
         }
     }
+
+    @Override
+    public void removeUser(String username) {
+        users.remove(username);
+    }
 }
