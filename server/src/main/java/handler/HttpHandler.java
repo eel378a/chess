@@ -8,8 +8,11 @@ import requestsResults.RegisterRequest;
 import requestsResults.RegisterResult;
 import requestsResults.EmptyResult;
 import requestsResults.LogoutRequest;
+import requestsResults.CreateGameRequest;
+import requestsResults.CreateGameResult;
 import service.Service;
 import service.UserService;
+import service.GameService;
 import spark.Request;
 import spark.Response;
 
@@ -20,6 +23,7 @@ public class HttpHandler {
 
     Service service = new Service(userDao, gameDao, authDao);
     UserService userService = new UserService(userDao, gameDao, authDao);
+    GameService gameService = new GameService(userDao, gameDao, authDao);
 
     public Object clear(Request req, Response res) {
         service.clear();
@@ -47,6 +51,12 @@ public class HttpHandler {
         return new Gson().toJson(result);
     }
 
+    public Object createGame(Request req, Response res) {
+        CreateGameRequest request = new Gson().fromJson(req.body(), CreateGameRequest.class);
+        CreateGameResult result = gameService.createGame(request, req.headers("authorization"));
+        res.status(getStatusCodeFromMessage(result.message()));
+        return new Gson().toJson(result);
+    }
     private int getStatusCodeFromMessage(String message) {
         int status;
         if (message == null) {
@@ -62,4 +72,6 @@ public class HttpHandler {
         }
         return status;
     }
+
+
 }
