@@ -27,16 +27,6 @@ public class ServiceTests {
         userService.clear();
     }
 
-    //adding clear() fail test to see if that was the error in autograder
-    @Test
-     void clearFailure() throws DataAccessException {
-        var registerRequest = new RegisterRequest("name", "supersecret", "emaiil");
-        var registerResult = new UserService(users, games, tokens).register(registerRequest);
-
-        GameDAO expectedResult = new MemoryGameDAO();
-        Assertions.assertNotEquals(expectedResult, registerResult);
-    }
-
     //tests
     @Test
     void clear() throws DataAccessException {
