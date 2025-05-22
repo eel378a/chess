@@ -54,29 +54,7 @@ public class ChessPiece {
         Collection<ChessMove> moves = new ArrayList<>();
         switch (type) {
             case PAWN -> {
-                int[][] directions = availableDirections(type);
-                assert directions != null;
-                for (int[] direction : directions) {
-                    ChessMove newMove;
-                    newMove = getPawnMove(board, myPosition, direction[0], direction[1]);
-
-                    // and on the first move PAWN can move 2...
-                    if ((direction[1] == 0) && isFirstMove(pieceColor, myPosition)){
-                        ChessMove extraMove = null;
-                        if (newMove != null){
-                            switch (pieceColor){
-                                case WHITE -> extraMove = getPawnMove(board, myPosition, direction[0] + 1, direction[1]);
-                                case BLACK -> extraMove = getPawnMove(board, myPosition, direction[0] - 1, direction[1]);
-                            }
-                        }
-                        if (extraMove != null) {moves.add(extraMove);}
-                    }
-                    if (newMove != null){
-                        if (canPromote(newMove, pieceColor)) {
-                            moves.addAll(getPawnPromotions(newMove));
-                        } else {moves.add(newMove);}
-                    }
-                }
+                addPawnMoves(board, myPosition, moves);
             }
             case QUEEN, BISHOP, ROOK -> {
                 int[][] directions = availableDirections(type);
@@ -213,6 +191,35 @@ public class ChessPiece {
     }
 
     //pawn stuff
+    private void addPawnMoves(ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves) {
+        int[][] directions = availableDirections(type);
+        assert directions != null;
+
+        for (int[] direction : directions) {
+            ChessMove newMove = getPawnMove(board, myPosition, direction[0], direction[1]);
+
+            if (direction[1] == 0 && isFirstMove(pieceColor, myPosition)) {
+                if (newMove != null) {
+                    ChessMove extraMove = switch (pieceColor) {
+                        case WHITE -> getPawnMove(board, myPosition, direction[0] + 1, direction[1]);
+                        case BLACK -> getPawnMove(board, myPosition, direction[0] - 1, direction[1]);
+                    };
+                    if (extraMove != null) {
+                        moves.add(extraMove);
+                    }
+                }
+            }
+
+            if (newMove != null) {
+                if (canPromote(newMove, pieceColor)) {
+                    moves.addAll(getPawnPromotions(newMove));
+                } else {
+                    moves.add(newMove);
+                }
+            }
+        }
+    }
+
     private ChessMove getPawnMove(ChessBoard board, ChessPosition myPosition, int vert, int horizon) {
         int nextRow = myPosition.getRow() + vert;
         int nextCol = myPosition.getColumn() + horizon;
