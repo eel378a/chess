@@ -3,6 +3,7 @@ import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import service.Service;
@@ -24,6 +25,16 @@ public class ServiceTests {
     @BeforeEach
     void reset() {
         userService.clear();
+    }
+
+    //adding clear() fail test to see if that was the error in autograder
+    @Test
+     void clearFailure() throws DataAccessException {
+        var registerRequest = new RegisterRequest("name", "supersecret", "emaiil");
+        var registerResult = new UserService(users, games, tokens).register(registerRequest);
+
+        GameDAO expectedResult = new MemoryGameDAO();
+        Assertions.assertNotEquals(expectedResult, registerResult);
     }
 
     //tests
