@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
+import java.sql.ResultSet;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
@@ -39,7 +41,7 @@ public class SqlGameDao implements GameDAO{
                 preparedStatement.setInt(1, game.gameID());
                 preparedStatement.setString(2, game.whiteUsername());
                 preparedStatement.setString(3, game.blackUsername());
-                preparedStatement.setString(4, game.blackUsername());
+                preparedStatement.setString(4, game.gameName());
                 preparedStatement.setString(5, gameDataJson);
                 preparedStatement.executeUpdate();
             }
@@ -49,8 +51,17 @@ public class SqlGameDao implements GameDAO{
     }
 
     @Override
-    public Collection<GameData> listGames() {
-        throw new RuntimeException("Not implemented");
+    public Collection<GameData> listGames() throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT gameID, whiteUsername, blackUsername, gameName FROM games;";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    return formatListGameResult(ps);
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error reading database: ".concat(e.getMessage()));
+        }
     }
 
     @Override
@@ -87,4 +98,20 @@ public class SqlGameDao implements GameDAO{
             throw new DataAccessException("Error configuring database: ".concat(e.getMessage()));
         }
     }
+
+        private ArrayList<GameData> formatListGameResult(PreparedStatement ps) throws DataAccessException {
+            ArrayList<GameData> result = new ArrayList<>();
+            try (ResultSet resultSet = ps.executeQuery()) {
+                while (resultSet.next()) {
+                    int gameID = resultSet.getInt("gameID");
+                    String whiteUsername = resultSet.getString("whiteUsername");
+                    String blackUsername = resultSet.getString("blackUsername");
+                    String gameName = resultSet.getString("gameName");
+                    result.add(new GameData(gameID, whiteUsername, blackUsername, gameName, null));
+                }
+                return result;
+            } catch (Exception e) {
+                throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
+            }
+        }
 }

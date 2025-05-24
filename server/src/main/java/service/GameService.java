@@ -10,6 +10,7 @@ import dataaccess.UserDAO;
 import requestsresults.*;
 import chess.ChessGame;
 import model.GameData;
+import dataaccess.DataAccessException;
 
 public class GameService extends Service {
     private int newGameID = 1;
@@ -62,14 +63,18 @@ public class GameService extends Service {
     //join game
     public EmptyResult joinGame(JoinGameRequest request, String authToken) {
         EmptyResult result;
-        if (!isValidAuthToken(authToken)) {
-            result = new EmptyResult("Error: unauthorized");
-        } else if (!isValidColor(request.playerColor()) || !isValidGameID(request.gameID())) {
-            result = new EmptyResult("Error: bad request");
-        } else if (!playerColorAvailable(request)) {
-            result = new EmptyResult("Error: already taken");
-        } else {
-            result = joinGameWithValidRequest(request, authToken);
+        try {
+            if (!isValidAuthToken(authToken)) {
+                result = new EmptyResult("Error: unauthorized");
+            } else if (!isValidColor(request.playerColor()) || !isValidGameID(request.gameID())) {
+                result = new EmptyResult("Error: bad request");
+            } else if (!playerColorAvailable(request)) {
+                result = new EmptyResult("Error: already taken");
+            } else {
+                result = joinGameWithValidRequest(request, authToken);
+            }
+        } catch (Exception e) {
+            result = new EmptyResult("Error: ".concat(e.getMessage()));
         }
         return result;
     }
@@ -78,10 +83,10 @@ public class GameService extends Service {
     private boolean isValidColor(String playerColor) {
         return (playerColor != null) && (playerColor.equals("WHITE") || playerColor.equals("BLACK"));
     }
-    private boolean isValidGameID(int gameID) {
+    private boolean isValidGameID(int gameID) throws DataAccessException{
         return games.getGame(gameID) != null;
     }
-    private boolean playerColorAvailable(JoinGameRequest request) {
+    private boolean playerColorAvailable(JoinGameRequest request) throws DataAccessException{
         GameData gameData = games.getGame(request.gameID());
         if (request.playerColor().equals("WHITE")) {
             return gameData.whiteUsername()==null;
