@@ -2,10 +2,13 @@ package service;
 
 import java.util.UUID;
 
+import dataaccess.DataAccessException;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
 import model.AuthData;
+
+import javax.xml.crypto.Data;
 
 public class Service {
     protected UserDAO users;
@@ -18,7 +21,7 @@ public class Service {
         this.tokens = tokens;
     }
 
-    public void clear() {
+    public void clear() throws DataAccessException {
         users.clearUsers();
         games.clearGames();
         tokens.clearAuthTokens();    }

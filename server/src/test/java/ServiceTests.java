@@ -23,7 +23,7 @@ public class ServiceTests {
     GameService gameService = new GameService(users, games, tokens);
 
     @BeforeEach
-    void reset() {
+    void reset() throws DataAccessException{
         userService.clear();
     }
 

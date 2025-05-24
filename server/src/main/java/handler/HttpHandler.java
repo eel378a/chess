@@ -28,7 +28,7 @@ public class HttpHandler {
     UserService userService = new UserService(userDao, gameDao, authDao);
     GameService gameService = new GameService(userDao, gameDao, authDao);
 
-    public Object clear(Request req, Response res) {
+    public Object clear(Request req, Response res) throws DataAccessException{
         service.clear();
         res.status(200);
         return "";
