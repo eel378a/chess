@@ -18,8 +18,15 @@ public class SqlGameDao implements GameDAO{
     }
 
     @Override
-    public void clearGames() {
-        throw new RuntimeException("Not implemented");
+    public void clearGames() throws DataAccessException {
+        String statement = "TRUNCATE games";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error clearing database: ".concat(e.getMessage()));
+        }
     }
 
     @Override
