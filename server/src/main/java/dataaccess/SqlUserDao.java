@@ -1,5 +1,6 @@
 package dataaccess;
 
+import model.AuthData;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.Connection;
@@ -7,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import static java.sql.Types.NULL;
+import java.sql.ResultSet;
+import java.util.ArrayList;
 
 public class SqlUserDao implements UserDAO {
     public SqlUserDao() throws DataAccessException {
@@ -14,8 +17,8 @@ public class SqlUserDao implements UserDAO {
     }
 
     @Override
-    public void clearUsers() {
-        throw new RuntimeException("Not implemented");
+    public void clearUsers() throws DataAccessException {
+        executeUpdate("TRUNCATE users");
     }
 
     @Override
@@ -26,13 +29,28 @@ public class SqlUserDao implements UserDAO {
     }
 
     @Override
-    public Collection<UserData> listUsers() {
-        throw new RuntimeException("Not implemented");
+    public Collection<UserData> listUsers() throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT username, password, email FROM users;";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                return formatListUsersResult(ps);
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error reading database: ".concat(e.getMessage()));
+        }
     }
 
     @Override
-    public UserData getUser(String username) {
-        throw new RuntimeException("Not implemented");
+    public UserData getUser(String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT username, password, email FROM users WHERE username=?;";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                return formatGetUserResult(ps);
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error reading database: ".concat(e.getMessage()));
+        }
     }
 
     @Override
@@ -77,7 +95,7 @@ public class SqlUserDao implements UserDAO {
         }
     }
 
-    private void executeUpdate(String statement, Object... params) throws DataAccessException {
+    protected void executeUpdate(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
                 PreparedStatement updatedStatement = setStatementVariables(ps, params);
@@ -100,5 +118,35 @@ public class SqlUserDao implements UserDAO {
             }
         }
         return ps;
+    }
+
+    private ArrayList<UserData> formatListUsersResult(PreparedStatement ps) throws DataAccessException {
+        ArrayList<UserData> result = new ArrayList<>();
+        try (ResultSet resultSet = ps.executeQuery()) {
+            while (resultSet.next()) {
+                String username = resultSet.getString("username");
+                String password = resultSet.getString("password");
+                String email = resultSet.getString("email");
+                result.add(new UserData(username, password, email));
+            }
+            return result;
+        } catch (Exception e) {
+            throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
+        }
+    }
+
+    private UserData formatGetUserResult(PreparedStatement ps) throws DataAccessException {
+        try (ResultSet resultSet = ps.executeQuery()) {
+            if (resultSet.next()) {
+                String username = resultSet.getString("username");
+                String password = resultSet.getString("password");
+                String email = resultSet.getString("email");
+                return new UserData(username, password, email);
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
+        }
     }
 }
