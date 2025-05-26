@@ -62,17 +62,17 @@ public class UserService extends Service {
 
     public EmptyResult logout(LogoutRequest request) {
         EmptyResult result;
-        if (isValidAuthToken(request.authToken())) {
             try {
+                if (isValidAuthToken(request.authToken())){
                 AuthData authData = tokens.getAuthData(request.authToken());
                 tokens.removeAuthData(authData.authToken());
                 users.removeUser(authData.username());
                 result = new EmptyResult(null);
-            } catch (Exception e) {
-                result = new EmptyResult("Error: ". concat(e.getMessage()));
-            }
-        } else {
-            result = new EmptyResult("Error: unauthorized");
+                } else {
+                    result = new EmptyResult("Error: unauthorized");
+                }
+            }catch (Exception e) {
+                    result = new EmptyResult("Error: ".concat(e.getMessage()));
         }//was null here, change to result message
         return new EmptyResult(result.message());
     }

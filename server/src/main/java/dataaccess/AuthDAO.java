@@ -3,9 +3,9 @@ import model.AuthData;
 import java.util.Collection;
 
 public interface AuthDAO {
-    public void clearAuthTokens();
-    public void addAuthToken(AuthData authData);
-    public Collection<AuthData> listAuthTokens();
-    public AuthData getAuthData(String authToken);
-    public void removeAuthData(String authToken);
+    public void clearAuthTokens() throws DataAccessException;
+    public void addAuthToken(AuthData authData)throws DataAccessException;
+    public Collection<AuthData> listAuthTokens()throws DataAccessException;
+    public AuthData getAuthData(String authToken)throws DataAccessException;
+    public void removeAuthData(String authToken)throws DataAccessException;
 }

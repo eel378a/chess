@@ -52,10 +52,12 @@ public class GameDAOTests {
     @Test
     public void listGames() throws DataAccessException {
         ArrayList<GameData> expected = new ArrayList<>();
-        GameData game1 = new GameData(1, null, null, "game1", new ChessGame());
-        GameData game2 = new GameData(2, "white", null, "game2", new ChessGame());
-        GameData game3 = new GameData(3, null, "black", "game3", new ChessGame());
-
+        GameData game1 =
+                new GameData(1, null, null, "game1", new ChessGame());
+        GameData game2 =
+                new GameData(2, "white", null, "game2", new ChessGame());
+        GameData game3
+                = new GameData(3, null, "black", "game3", new ChessGame());
         games.addGame(game1);
         games.addGame(game2);
         games.addGame(game3);
@@ -72,5 +74,27 @@ public class GameDAOTests {
         //System.out.println(expected);
         //System.out.println(actual);
         assert expected.equals(actual);
+    }
+
+    @Test
+    public void getGame() throws DataAccessException {
+        GameData game1 =
+                new GameData(1, null, null, "game1", new ChessGame());
+
+        games.addGame(game1);
+
+        GameData result = games.getGame(1);
+        assert game1.equals(result);
+    }
+
+    @Test
+    public void getNonexistentGame() throws DataAccessException {
+        GameData game1 =
+                new GameData(1, null, null, "game1", new ChessGame());
+
+        games.addGame(game1);
+
+        GameData result = games.getGame(2);
+        assert result == null;
     }
 }

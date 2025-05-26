@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.sql.ResultSet;
+import chess.ChessGame;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
@@ -55,9 +56,7 @@ public class SqlGameDao implements GameDAO{
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "SELECT gameID, whiteUsername, blackUsername, gameName FROM games;";
             try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    return formatListGameResult(ps);
-                }
+                return formatListGameResult(ps);
             }
         } catch (Exception e) {
             throw new DataAccessException("Error reading database: ".concat(e.getMessage()));
@@ -65,8 +64,16 @@ public class SqlGameDao implements GameDAO{
     }
 
     @Override
-    public GameData getGame(int gameID) {
-        throw new RuntimeException("Not implemented");
+    public GameData getGame(int gameID) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String statement = "SELECT * FROM games WHERE gameID=?;";
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                return formatGetGameResult(ps);
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error reading database: ".concat(e.getMessage()));
+        }
     }
 
     private final String[] createStatements = {
@@ -114,4 +121,22 @@ public class SqlGameDao implements GameDAO{
                 throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
             }
         }
+
+    private GameData formatGetGameResult(PreparedStatement ps) throws DataAccessException {
+        try (ResultSet resultSet = ps.executeQuery()) {
+            if (resultSet.next()) {
+                int gameID = resultSet.getInt("gameID");
+                String whiteUsername = resultSet.getString("whiteUsername");
+                String blackUsername = resultSet.getString("blackUsername");
+                String gameName = resultSet.getString("gameName");
+                String gameJson = resultSet.getString("game");
+                ChessGame game = new Gson().fromJson(gameJson, ChessGame.class);
+                return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
+        }
+    }
 }

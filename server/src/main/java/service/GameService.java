@@ -20,32 +20,33 @@ public class GameService extends Service {
 
     public CreateGameResult createGame(CreateGameRequest request, String authToken) {
         CreateGameResult result;
-        if (request.gameName()==null) {
-            result = new CreateGameResult(null, "Error: bad request");
-        }else if (isValidAuthToken(authToken)) {
-            try {
+        try {
+            if (request.gameName().isBlank()) {
+                result = new CreateGameResult(null, "Error: bad request");
+            } else if (isValidAuthToken(authToken)) {
                 games.addGame(new GameData(newGameID, null, null, request.gameName(), new ChessGame()));
                 result = new CreateGameResult(newGameID, null);
                 newGameID++;
-            } catch (Exception e) {
+            } else {
+                result = new CreateGameResult(null, "Error: unauthorized");
+            }
+        }catch (Exception e){
                 result = new CreateGameResult(null, "Error: ".concat(e.getMessage()));
             }
-        } else {
-            result = new CreateGameResult(null, "Error: unauthorized");
-        }
         return result;
     }
 
     public ListGamesResult listGame(ListGamesRequest request) {
         ListGamesResult result;
-        if (isValidAuthToken(request.authToken())) {
-            try {
+        try {
+            if (isValidAuthToken(request.authToken())) {
                 Collection<GameData> gameList = getGameListData(games.listGames());
                 result = new ListGamesResult(gameList, null);
-            } catch (Exception e) {
-                result = new ListGamesResult(null, "Error: ".concat(e.getMessage()));
-            }        } else {
-            result = new ListGamesResult(null, "Error: unauthorized");
+            } else {
+                result = new ListGamesResult(null, "Error: unauthorized");
+            }
+        } catch (Exception e) {
+        result = new ListGamesResult(null, "Error: ".concat(e.getMessage()));
         }
         return result;
     }

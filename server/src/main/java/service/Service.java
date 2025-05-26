@@ -26,7 +26,7 @@ public class Service {
         games.clearGames();
         tokens.clearAuthTokens();    }
 
-    protected boolean isValidAuthToken(String authToken) {
+    protected boolean isValidAuthToken(String authToken) throws DataAccessException{
         AuthData result = tokens.getAuthData(authToken);
         return result != null;
     }
