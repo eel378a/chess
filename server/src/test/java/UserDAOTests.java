@@ -62,4 +62,28 @@ public class UserDAOTests {
         UserData result = users.getUser("username");
         assert result == null;
     }
+
+    @Test
+    public void getUserByNameAndPassword() throws DataAccessException {
+        UserData user = new UserData("username", "password", "email");
+        users.addUser(user);
+
+        UserData result = users.getUserByNameAndPassword("username", "password");
+        assert user.username().equals(result.username());
+        assert user.email().equals(result.email());
+    }
+
+    @Test
+    public void getNotexistingUserFromNameAndPword() throws DataAccessException {
+        UserData result = users.getUserByNameAndPassword("username", "password");
+        assert result == null;
+    }
+
+    @Test
+    public void removeUser() throws DataAccessException {
+        UserData user = new UserData("username", "password", "email");
+        users.addUser(user);
+        users.removeUser("username");
+        assert users.getUser(user.username()) == null;
+    }
 }
