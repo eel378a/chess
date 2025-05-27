@@ -21,7 +21,7 @@ public class GameService extends Service {
     public CreateGameResult createGame(CreateGameRequest request, String authToken) {
         CreateGameResult result;
         try {
-            if (request.gameName().isBlank()) {
+            if (request.gameName() == null) {//fixing create bad request test
                 result = new CreateGameResult(null, "Error: bad request");
             } else if (isValidAuthToken(authToken)) {
                 games.addGame(new GameData(newGameID, null, null, request.gameName(), new ChessGame()));
