@@ -27,9 +27,9 @@ public class AuthDAOTests {
     }
     @Test
     public void duplicateUsernameAuthToken() throws DataAccessException {
-        AuthData token = new AuthData(UUID.randomUUID().toString(), "duplicate name");
-        AuthData token2 = new AuthData(UUID.randomUUID().toString(), "duplicate name");
-
+        String authToken = UUID.randomUUID().toString();
+        AuthData token = new AuthData(authToken, "name");
+        AuthData token2 = new AuthData(authToken, "name2");
         tokens.addAuthToken(token);
 
         String error = "";
@@ -97,5 +97,10 @@ public class AuthDAOTests {
     @Test
     public void removeNonexistentAuthToken() throws DataAccessException {
         assertDoesNotThrow(() -> tokens.removeAuthData("authToken"));
+    }
+
+    @Test
+    public void listEmptyAuthTokens() throws DataAccessException {
+        assert tokens.listAuthTokens().isEmpty();
     }
 }

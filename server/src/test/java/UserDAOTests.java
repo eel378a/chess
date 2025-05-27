@@ -86,4 +86,14 @@ public class UserDAOTests {
         users.removeUser("username");
         assert users.getUser(user.username()) == null;
     }
+
+    @Test
+    public void removeNotexistingUser(){
+        assertDoesNotThrow(() -> users.removeUser("authToken"));
+    }
+
+    @Test
+    public void listEmptyUsers() throws DataAccessException {
+        assert users.listUsers().isEmpty();
+    }
 }

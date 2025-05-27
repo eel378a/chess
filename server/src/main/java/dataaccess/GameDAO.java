@@ -3,8 +3,9 @@ import model.GameData;
 import java.util.Collection;
 
 public interface GameDAO {
-    public void clearGames() throws DataAccessException;
-    public void addGame(GameData game) throws DataAccessException;
-    public Collection<GameData> listGames() throws DataAccessException;
-    public GameData getGame(int gameID) throws DataAccessException;
+    void clearGames() throws DataAccessException;
+    void addGame(GameData game) throws DataAccessException;
+    Collection<GameData> listGames() throws DataAccessException;
+    GameData getGame(int gameID) throws DataAccessException;
+    void updateGame(GameData game) throws DataAccessException;
 }

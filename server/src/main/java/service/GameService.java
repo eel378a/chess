@@ -101,10 +101,10 @@ public class GameService extends Service {
             GameData gameData = games.getGame(request.gameID());
             String userName = tokens.getAuthData(authToken).username();
             if (request.playerColor().equals("WHITE")) {
-                games.addGame(new GameData(gameData.gameID(), userName, gameData.blackUsername(),
+                games.updateGame(new GameData(gameData.gameID(), userName, gameData.blackUsername(),
                         gameData.gameName(), gameData.game()));
             } else {
-                games.addGame(new GameData(gameData.gameID(), gameData.whiteUsername(), userName,
+                games.updateGame(new GameData(gameData.gameID(), gameData.whiteUsername(), userName,
                         gameData.gameName(), gameData.game()));
             }
             result = new EmptyResult(null);

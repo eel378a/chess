@@ -6,12 +6,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.List;
 import java.util.ArrayList;
 import java.sql.ResultSet;
 import chess.ChessGame;
-
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
 
@@ -30,6 +27,14 @@ public class SqlGameDao implements GameDAO{
         } catch (Exception e) {
             throw new DataAccessException("Error clearing database: ".concat(e.getMessage()));
         }
+    }
+
+    @Override
+    public void updateGame(GameData game) throws DataAccessException {
+        String statement =
+                "UPDATE games SET whiteUsername=?, blackUsername=?, gameName=?, game=? WHERE gameID=?";
+        String gameDataJson = new Gson().toJson(game.game());
+        executeUpdate(statement, game.whiteUsername(), game.blackUsername(), game.gameName(), gameDataJson, game.gameID());
     }
 
     @Override
@@ -138,5 +143,30 @@ public class SqlGameDao implements GameDAO{
         } catch (Exception e) {
             throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
         }
+    }
+
+    protected void executeUpdate(String statement, Object... params) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(statement)) {
+                PreparedStatement updatedStatement = setStatementVariables(ps, params);
+                updatedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException("Error updating database: ".concat(e.getMessage()));
+        }
+    }
+
+    protected PreparedStatement setStatementVariables(PreparedStatement ps, Object ... params) throws SQLException {
+        for (int i = 0; i < params.length; i++) {
+            var param = params[i];
+            switch (param) {
+                case Integer p -> ps.setInt(i + 1, p);
+                case String p -> ps.setString(i + 1, p);
+                case null -> ps.setNull(i + 1, NULL);
+                default -> {
+                }
+            }
+        }
+        return ps;
     }
 }

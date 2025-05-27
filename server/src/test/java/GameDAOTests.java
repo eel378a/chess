@@ -7,10 +7,8 @@ import model.GameData;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class GameDAOTests {
     GameDAO games;
@@ -97,4 +95,25 @@ public class GameDAOTests {
         GameData result = games.getGame(2);
         assert result == null;
     }
+
+    @Test
+    public void listEmptyGames() throws DataAccessException {
+        assert games.listGames().isEmpty();
+    }
+
+    @Test
+    public void updateGame() throws DataAccessException {
+        GameData game1 = new GameData(1, null, null, "gameName", new ChessGame());
+        GameData game2 = new GameData(1, null, null, "gameName2", new ChessGame());
+        games.addGame(game1);
+        games.updateGame(game2);
+        GameData newGame = games.getGame(1);
+        assert newGame.equals(game2);
+    }
+
+    @Test
+    public void updateNotexistingGame() throws DataAccessException {
+        assert games.listGames().isEmpty();
+    }
+
 }

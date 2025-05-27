@@ -64,8 +64,7 @@ public class SqlAuthDao implements AuthDAO {
                 `authToken` varchar(256),
                 `username` varchar(256),
                 PRIMARY KEY (`id`),
-                INDEX(authToken),
-                UNIQUE(username)
+                UNIQUE INDEX(authToken)
             );
             """
     };

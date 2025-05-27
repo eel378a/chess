@@ -20,13 +20,26 @@ import spark.Request;
 import spark.Response;
 
 public class HttpHandler {
-    UserDAO userDao = new MemoryUserDao();
-    GameDAO gameDao = new MemoryGameDAO();
-    AuthDAO authDao = new MemoryAuthDAO();
+    UserDAO userDao;
+    GameDAO gameDao;
+    AuthDAO authDao;
 
-    Service service = new Service(userDao, gameDao, authDao);
-    UserService userService = new UserService(userDao, gameDao, authDao);
-    GameService gameService = new GameService(userDao, gameDao, authDao);
+    Service service;
+    UserService userService;
+    GameService gameService;
+
+    public HttpHandler() {
+        try {
+            userDao = new SqlUserDao();
+            gameDao = new SqlGameDao();
+            authDao = new SqlAuthDao();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        service = new Service(userDao, gameDao, authDao);
+        userService = new UserService(userDao, gameDao, authDao);
+        gameService = new GameService(userDao, gameDao, authDao);
+    }
 
     public Object clear(Request req, Response res) throws DataAccessException{
         service.clear();

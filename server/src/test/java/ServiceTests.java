@@ -113,7 +113,6 @@ public class ServiceTests {
         EmptyResult result = userService.logout(logoutRequest);
 
         assert result.message() == null;
-        assert users.getUser(registerResult.username()) == null;
         assert tokens.getAuthData(registerResult.authToken()) == null;
     }
     @Test

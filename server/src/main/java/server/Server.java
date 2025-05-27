@@ -4,7 +4,10 @@ import spark.*;
 
 public class Server {
 
-    HttpHandler httpHandler = new HttpHandler();
+    HttpHandler httpHandler;
+    public Server() {
+        httpHandler = new HttpHandler();
+    }
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
