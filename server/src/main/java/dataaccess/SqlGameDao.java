@@ -14,7 +14,19 @@ import static java.sql.Types.NULL;
 
 public class SqlGameDao implements GameDAO{
     public SqlGameDao() throws DataAccessException {
-        configureDatabase();
+        String[] createStatements = {
+                """
+        CREATE TABLE IF NOT EXISTS games (
+            `gameID` int NOT NULL,
+            `whiteUsername` varchar(256),
+            `blackUsername` varchar(256),
+            `gameName` varchar(256),
+            `game` TEXT,
+            PRIMARY KEY (`gameID`)
+        );
+        """
+        };
+        configureDatabase(createStatements);
     }
 
     @Override
@@ -81,20 +93,7 @@ public class SqlGameDao implements GameDAO{
         }
     }
 
-    private final String[] createStatements = {
-            """
-        CREATE TABLE IF NOT EXISTS games (
-            `gameID` int NOT NULL,
-            `whiteUsername` varchar(256),
-            `blackUsername` varchar(256),
-            `gameName` varchar(256),
-            `game` TEXT,
-            PRIMARY KEY (`gameID`)
-        );
-        """
-    };
-
-    private void configureDatabase() throws DataAccessException {
+    private void configureDatabase(String[] createStatements) throws DataAccessException {
         try {
             DatabaseManager.createDatabase();
         } catch(DataAccessException e) {

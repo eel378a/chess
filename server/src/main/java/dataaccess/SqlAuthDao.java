@@ -7,13 +7,24 @@ import java.util.ArrayList;
 import java.sql.ResultSet;
 
 import java.util.Collection;
-import java.util.List;
+
 import static java.sql.Types.NULL;
 
 
 public class SqlAuthDao implements AuthDAO {
     public SqlAuthDao() throws DataAccessException {
-        configureDatabase();
+        String[] createStatements = {
+                """
+            CREATE TABLE IF NOT EXISTS tokens (
+                `id` int NOT NULL AUTO_INCREMENT,
+                `authToken` varchar(256),
+                `username` varchar(256),
+                PRIMARY KEY (`id`),
+                UNIQUE INDEX(authToken)
+            );
+            """
+        };
+        configureDatabase(createStatements);
     }
 
     @Override
@@ -57,19 +68,7 @@ public class SqlAuthDao implements AuthDAO {
         executeUpdate(statement, authToken);
     }
 
-    private final String[] createStatements = {
-            """
-            CREATE TABLE IF NOT EXISTS tokens (
-                `id` int NOT NULL AUTO_INCREMENT,
-                `authToken` varchar(256),
-                `username` varchar(256),
-                PRIMARY KEY (`id`),
-                UNIQUE INDEX(authToken)
-            );
-            """
-    };
-
-    private void configureDatabase() throws DataAccessException {
+    private void configureDatabase(String[] createStatements) throws DataAccessException {
         try {
             DatabaseManager.createDatabase();
         } catch(DataAccessException e) {

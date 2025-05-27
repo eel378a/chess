@@ -12,7 +12,21 @@ import java.util.ArrayList;
 
 public class SqlUserDao implements UserDAO {
     public SqlUserDao() throws DataAccessException {
-        configureDatabase();
+        String[] createStatements = {
+                """
+            CREATE TABLE IF NOT EXISTS users (
+                `id` int NOT NULL AUTO_INCREMENT,
+                `username` varchar(256),
+                `password` varchar(256),
+                `email` varchar(256),
+                PRIMARY KEY (`id`),
+                INDEX(username),
+                INDEX(password),
+                UNIQUE(username)
+            );
+            """
+        };
+        configureDatabase(createStatements);
     }
 
     @Override
@@ -76,22 +90,7 @@ public class SqlUserDao implements UserDAO {
         executeUpdate(statement, username);
     }
 
-    private final String[] createStatements = {
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                `id` int NOT NULL AUTO_INCREMENT,
-                `username` varchar(256),
-                `password` varchar(256),
-                `email` varchar(256),
-                PRIMARY KEY (`id`),
-                INDEX(username),
-                INDEX(password),
-                UNIQUE(username)
-            );
-            """
-    };
-
-    private void configureDatabase() throws DataAccessException {
+    private void configureDatabase(String[] createStatements) throws DataAccessException {
         try {
             DatabaseManager.createDatabase();
         } catch(DataAccessException e) {
