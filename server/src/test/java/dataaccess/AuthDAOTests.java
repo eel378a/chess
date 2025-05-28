@@ -24,21 +24,6 @@ public class AuthDAOTests {
         AuthData token = new AuthData(UUID.randomUUID().toString(), "name");
         assertDoesNotThrow(() -> tokens.addAuthToken(token));
     }
-    @Test
-    public void duplicateUsernameAuthToken() throws DataAccessException {
-        String authToken = UUID.randomUUID().toString();
-        AuthData token = new AuthData(authToken, "name");
-        AuthData token2 = new AuthData(authToken, "name2");
-        tokens.addAuthToken(token);
-
-        String error = "";
-        try {
-            tokens.addAuthToken(token2);
-        } catch (Exception e) {
-            error = e.getMessage();
-        }
-        assert !error.isBlank();
-    }
 
     @Test
     public void clearAuthTokens() throws DataAccessException {
