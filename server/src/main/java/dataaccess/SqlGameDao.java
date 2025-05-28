@@ -32,13 +32,14 @@ public class SqlGameDao extends TheSqlDao implements GameDAO{
     @Override
     public void clearGames() throws DataAccessException {
         String statement = "TRUNCATE games";
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error clearing database: ".concat(e.getMessage()));
-        }
+//        try (Connection conn = DatabaseManager.getConnection()) {
+//            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.executeUpdate();
+//            }
+//        } catch (Exception e) {
+//            throw new DataAccessException("Error clearing database: ".concat(e.getMessage()));
+//        }
+        executeUpdate(statement);
     }
 
     @Override
@@ -114,19 +115,5 @@ public class SqlGameDao extends TheSqlDao implements GameDAO{
         } catch (Exception e) {
             throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
         }
-    }
-
-    protected PreparedStatement setStatementVariables(PreparedStatement ps, Object ... params) throws SQLException {
-        for (int i = 0; i < params.length; i++) {
-            var param = params[i];
-            switch (param) {
-                case Integer p -> ps.setInt(i + 1, p);
-                case String p -> ps.setString(i + 1, p);
-                case null -> ps.setNull(i + 1, NULL);
-                default -> {
-                }
-            }
-        }
-        return ps;
     }
 }
