@@ -32,13 +32,6 @@ public class SqlGameDao extends TheSqlDao implements GameDAO{
     @Override
     public void clearGames() throws DataAccessException {
         String statement = "TRUNCATE games";
-//        try (Connection conn = DatabaseManager.getConnection()) {
-//            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
-//                preparedStatement.executeUpdate();
-//            }
-//        } catch (Exception e) {
-//            throw new DataAccessException("Error clearing database: ".concat(e.getMessage()));
-//        }
         executeUpdate(statement);
     }
 
