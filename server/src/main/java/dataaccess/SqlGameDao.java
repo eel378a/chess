@@ -12,7 +12,7 @@ import chess.ChessGame;
 import static java.sql.Types.NULL;
 
 
-public class SqlGameDao implements GameDAO{
+public class SqlGameDao extends TheSqlDao implements GameDAO{
     public SqlGameDao() throws DataAccessException {
         String[] createStatements = {
                 """
@@ -54,18 +54,7 @@ public class SqlGameDao implements GameDAO{
         String statement =
                 "INSERT INTO games (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
         String gameDataJson = new Gson().toJson(game.game());
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setInt(1, game.gameID());
-                preparedStatement.setString(2, game.whiteUsername());
-                preparedStatement.setString(3, game.blackUsername());
-                preparedStatement.setString(4, game.gameName());
-                preparedStatement.setString(5, gameDataJson);
-                preparedStatement.executeUpdate();
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error updating database: ".concat(e.getMessage()));
-        }
+        executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), gameDataJson);
     }
 
     @Override
@@ -93,38 +82,21 @@ public class SqlGameDao implements GameDAO{
         }
     }
 
-    private void configureDatabase(String[] createStatements) throws DataAccessException {
-        try {
-            DatabaseManager.createDatabase();
-        } catch(DataAccessException e) {
-            throw new RuntimeException(String.format("Error creating database: %s", e.getMessage()));
-        }
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
+    private ArrayList<GameData> formatListGameResult(PreparedStatement ps) throws DataAccessException {
+        ArrayList<GameData> result = new ArrayList<>();
+        try (ResultSet resultSet = ps.executeQuery()) {
+            while (resultSet.next()) {
+                int gameID = resultSet.getInt("gameID");
+                String whiteUsername = resultSet.getString("whiteUsername");
+                String blackUsername = resultSet.getString("blackUsername");
+                String gameName = resultSet.getString("gameName");
+                result.add(new GameData(gameID, whiteUsername, blackUsername, gameName, null));
             }
+            return result;
         } catch (Exception e) {
-            throw new DataAccessException("Error configuring database: ".concat(e.getMessage()));
+            throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
         }
     }
-
-        private ArrayList<GameData> formatListGameResult(PreparedStatement ps) throws DataAccessException {
-            ArrayList<GameData> result = new ArrayList<>();
-            try (ResultSet resultSet = ps.executeQuery()) {
-                while (resultSet.next()) {
-                    int gameID = resultSet.getInt("gameID");
-                    String whiteUsername = resultSet.getString("whiteUsername");
-                    String blackUsername = resultSet.getString("blackUsername");
-                    String gameName = resultSet.getString("gameName");
-                    result.add(new GameData(gameID, whiteUsername, blackUsername, gameName, null));
-                }
-                return result;
-            } catch (Exception e) {
-                throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
-            }
-        }
 
     private GameData formatGetGameResult(PreparedStatement ps) throws DataAccessException {
         try (ResultSet resultSet = ps.executeQuery()) {
@@ -141,17 +113,6 @@ public class SqlGameDao implements GameDAO{
             }
         } catch (Exception e) {
             throw new DataAccessException("Error executing query: ".concat(e.getMessage()));
-        }
-    }
-
-    protected void executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(statement)) {
-                PreparedStatement updatedStatement = setStatementVariables(ps, params);
-                updatedStatement.executeUpdate();
-            }
-        } catch (Exception e) {
-            throw new DataAccessException("Error updating database: ".concat(e.getMessage()));
         }
     }
 
