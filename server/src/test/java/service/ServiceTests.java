@@ -1,14 +1,12 @@
+package service;
+
 import chess.ChessGame;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import service.Service;
-import service.UserService;
-import service.GameService;
 
 import requestsresults.*;
 
