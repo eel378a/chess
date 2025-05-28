@@ -7,6 +7,7 @@ import requestsresults.LoginResult;
 import requestsresults.RegisterRequest;
 import requestsresults.RegisterResult;
 import requestsresults.EmptyResult;
+import requestsresults.Error;
 import requestsresults.LogoutRequest;
 import requestsresults.CreateGameRequest;
 import requestsresults.CreateGameResult;
@@ -41,11 +42,17 @@ public class HttpHandler {
         gameService = new GameService(userDao, gameDao, authDao);
     }
 
-    public Object clear(Request req, Response res) throws DataAccessException{
-        service.clear();
-        res.status(200);
-        return "";
+    public Object clear(Request req, Response res) throws DataAccessException {
+        try {
+            service.clear();
+            res.status(200);
+            return "";
+        } catch (DataAccessException ex){
+            res.status(500);
+            return new Gson().toJson(new requestsresults.Error("Error: we do be broke"));
+        }
     }
+
     public Object login(Request req, Response res) {
         LoginRequest request = new Gson().fromJson(req.body(), LoginRequest.class);
         LoginResult result = userService.login(request);
@@ -103,6 +110,5 @@ public class HttpHandler {
         }
         return status;
     }
-
 
 }
