@@ -1,7 +1,12 @@
 package client;
 
+import Data.RegisterResponse;
 import org.junit.jupiter.api.*;
 import server.Server;
+
+import model.AuthData;
+import model.UserData;
+import Data.RegisterResponse;
 
 
 public class ServerFacadeTests {
@@ -15,10 +20,12 @@ public class ServerFacadeTests {
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
         serverFacade = new ServerFacade("http://localhost:" + port);
+        serverFacade.clear();
     }
 
     @AfterAll
     static void stopServer() {
+        serverFacade.clear();
         server.stop();
     }
 
@@ -28,4 +35,33 @@ public class ServerFacadeTests {
         Assertions.assertTrue(true);
     }
 
+    //register tests
+    @Test
+    public void register() {
+        UserData user = new UserData("me", "classified", "email");
+        RegisterResponse result = serverFacade.register(user);
+        assert result.username().equals("me");
+        assert !result.authToken().isBlank();
+    }
+
+    @Test
+    public void registerDuplicate() {
+        UserData user = new UserData("me", "classified", "email");
+        UserData user2 = new UserData("me", "classified", "email");
+        serverFacade.register(user);
+        try {
+            RegisterResponse result = serverFacade.register(user2);
+        } catch (Exception e) {
+            assert e.getMessage().equals("Error: already taken");
+        }
+    }
+    @Test
+    public void registerBadRequest() {
+        UserData user = new UserData("you", "secret", "");
+        try {
+            RegisterResponse result = serverFacade.register(user);
+        } catch (Exception e) {
+            assert e.getMessage().equals("Error: bad request");
+        }
+    }
 }

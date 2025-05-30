@@ -11,9 +11,8 @@ public class HttpExcept extends RuntimeException{
         this.statusCode = statusCode;
     }
 
-    public static HttpExcept fromStream(InputStream stream) {
+    public static HttpExcept fromStream(InputStream stream, int status) {
         var map = new Gson().fromJson(new InputStreamReader(stream), HashMap.class);
-        int status = ((Double)map.get("status")).intValue();
         String message = map.get("message").toString();
         return new HttpExcept(status, message);
     }

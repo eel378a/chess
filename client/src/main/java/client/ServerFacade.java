@@ -3,20 +3,31 @@ package client;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-
+import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 
+import Data.RegisterResponse;
+
 public class ServerFacade {
+    private final String serverUrl;
+
     public ServerFacade(String url) {
-        throw new RuntimeException("Not implemented");
+        serverUrl= url;
     }
 
     public void clear() {
-        throw new RuntimeException("Not implemented");
+    makeRequest("DELETE", "/db", null, null, null);
     }
 
-    public AuthData register(UserData user) {
-        throw new RuntimeException("Not implemented");
+    public RegisterResponse register(UserData user) {
+        return makeRequest("POST", "/user", user, null, RegisterResponse.class);
     }
 
     public AuthData login(String username, String password) {
@@ -37,5 +48,66 @@ public class ServerFacade {
 
     public void joinGame(String playerColor, int gameID) {
         throw new RuntimeException("Not implemented");
+    }
+
+    //makeRequest and involved fns - see webapi.md
+    private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseType) throws HttpExcept {
+        try {
+            URL url = (new URI(serverUrl + path)).toURL();
+            HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            http.setRequestMethod(method);
+            if (authToken != null) {
+                http.addRequestProperty("authorization", authToken);
+            }
+            http.setDoOutput(true);
+            writeBody(request, http);
+            http.connect();
+            throwIfNotSuccessful(http);
+            return readBody(http, responseType);
+        } catch (HttpExcept e) {
+            throw e;
+        } catch (Exception e) {
+            throw new HttpExcept(500, e.getMessage());
+        }
+    }
+
+    private void writeBody(Object request, HttpURLConnection http) throws IOException {
+        if (request != null) {
+            http.addRequestProperty("Content-Type", "application/json");
+            String reqData = new Gson().toJson(request);
+            try (OutputStream requestBody = http.getOutputStream()) {
+                requestBody.write(reqData.getBytes());
+            }
+        }
+    }
+
+    private <T> T readBody(HttpURLConnection http, Class<T> responseType) throws IOException {
+        T response = null;
+        if (http.getContentLength() < 0) {
+            try (InputStream body = http.getInputStream()) {
+                InputStreamReader reader = new InputStreamReader(body);
+                if (responseType != null) {
+                    response = new Gson().fromJson(reader, responseType);
+                }
+            }
+        }
+        return response;
+    }
+
+    private void throwIfNotSuccessful(HttpURLConnection http) throws IOException, HttpExcept {
+        int status = http.getResponseCode();
+        if (!isSuccessful(status)) {
+            try (InputStream responseError = http.getErrorStream()) {
+                if (responseError != null) {
+                    throw HttpExcept.fromStream(responseError, status);
+                }
+            }
+
+            throw new HttpExcept(status, "Error: " + status);
+        }
+    }
+
+    private boolean isSuccessful(int status) {
+        return status / 100 == 2;
     }
 }
