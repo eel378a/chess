@@ -1,5 +1,6 @@
 package client;
 
+import Data.LoginResponse;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -13,8 +14,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 
-import Data.RegisterResponse;
-
 public class ServerFacade {
     private final String serverUrl;
 
@@ -26,12 +25,12 @@ public class ServerFacade {
     makeRequest("DELETE", "/db", null, null, null);
     }
 
-    public RegisterResponse register(UserData user) {
-        return makeRequest("POST", "/user", user, null, RegisterResponse.class);
+    public LoginResponse register(UserData user) {
+        return makeRequest("POST", "/user", user, null, LoginResponse.class);
     }
 
-    public AuthData login(String username, String password) {
-        throw new RuntimeException("Not implemented");
+    public LoginResponse login(String username, String password) {
+        return makeRequest("POST", "/session", new UserData(username, password, null), null, LoginResponse.class);
     }
 
     public void logout(String authToken) {
