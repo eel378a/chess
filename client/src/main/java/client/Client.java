@@ -1,6 +1,7 @@
 package client;
 import model.GameData;
 import chess.ChessGame;
+import java.util.HashMap;
 
 public abstract class Client {
     ServerFacade serverFacade;
@@ -8,6 +9,7 @@ public abstract class Client {
     String username;
     GameData game;
     ChessGame.TeamColor color;
+    protected HashMap<Integer, GameData> gameList = new HashMap<>();
 
     public Client(ServerFacade serverFacade) {
         this.serverFacade = serverFacade;

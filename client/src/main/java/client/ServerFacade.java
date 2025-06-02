@@ -1,10 +1,10 @@
 package client;
 
-import Data.LoginResponse;
-import Data.CreateGameRequest;
-import Data.CreateGameResponse;
-import Data.ListGameResponse;
-import Data.JoinGameReq;
+import data.LoginResponse;
+import data.CreateGameRequest;
+import data.CreateGameResponse;
+import data.ListGameResponse;
+import data.JoinGameReq;
 
 import model.GameData;
 import model.UserData;

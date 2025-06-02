@@ -1,4 +1,4 @@
-package Data;
+package data;
 import model.GameData;
 import java.util.Collection;
 

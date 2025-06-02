@@ -1,6 +1,6 @@
 package client;
 
-import Data.LoginResponse;
+import data.LoginResponse;
 import model.UserData;
 
 import java.util.Arrays;
@@ -73,6 +73,8 @@ public class PreLoginClient extends Client {
                     return "Provided username or password is incorrect";
                 }
                 return "Something went wrong logging in, please check your input and try again.";
+            }catch (Exception e) {
+            return "Something went wrong, please check your input and try again.";
             }
         }
         else {

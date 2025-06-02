@@ -7,7 +7,7 @@ import server.Server;
 
 import model.UserData;
 import model.GameData;
-import Data.LoginResponse;
+import data.LoginResponse;
 
 
 public class ServerFacadeTests {
