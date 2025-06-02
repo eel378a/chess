@@ -1,6 +1,9 @@
 package client;
 
 import Data.LoginResponse;
+import Data.CreateGameRequest;
+import Data.CreateGameResponse;
+import Data.ListGameResponse;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -13,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.ArrayList;
 
 public class ServerFacade {
     private final String serverUrl;
@@ -34,15 +38,16 @@ public class ServerFacade {
     }
 
     public void logout(String authToken) {
-        throw new RuntimeException("Not implemented");
+    makeRequest("DELETE", "/session", null, authToken, null);
     }
 
-    public int createGame(String gameName) {
-        throw new RuntimeException("Not implemented");
+    public int createGame(String gameName, String authToken) {
+        CreateGameResponse response = makeRequest("POST", "/game", new CreateGameRequest(gameName), authToken, CreateGameResponse.class);
+        return response.gameID();
     }
 
     public Collection<GameData> listGames(String authToken) {
-        throw new RuntimeException("Not implemented");
+    return makeRequest("GET", "/game", null, authToken, ListGameResponse.class).games();
     }
 
     public void joinGame(String playerColor, int gameID) {

@@ -1,9 +1,11 @@
 package client;
 
 import org.junit.jupiter.api.*;
+import java.util.Collection;
 import server.Server;
 
 import model.UserData;
+import model.GameData;
 import Data.LoginResponse;
 
 
@@ -77,5 +79,77 @@ public class ServerFacadeTests {
         } catch (Exception e) {
             assert e.getMessage().equals("Error: unauthorized");
         }
+    }
+    //logout tests
+    @Test
+    public void logout() {
+        UserData user = new UserData("me", "secret", "email");
+        LoginResponse response = serverFacade.register(user);
+        serverFacade.logout(response.authToken());
+
+        String result = "";
+        try {
+            serverFacade.createGame("game", "");
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: unauthorized");
+    }
+
+    @Test
+    public void unauthorizedLogout() {
+        String result = "";
+        try {
+            serverFacade.logout("");
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: unauthorized");
+    }
+
+    //create game tests
+    @Test
+    public void createaGame() {
+        UserData user = new UserData("meee", "nottellin", "mail");
+        String gameName = "game";
+
+        LoginResponse loginResponse = serverFacade.register(user);
+        int response = serverFacade.createGame(gameName, loginResponse.authToken());
+        assert response > 0;
+    }
+
+    @Test
+    public void unauthorizedCreateGame() {
+        String result = "";
+        try {
+            serverFacade.createGame("game", "");
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: unauthorized");
+    }
+
+    //listgames tests
+    @Test
+    public void listGames() {
+        UserData user = new UserData("other", "pass", "email");
+        String gameName = "game";
+
+        LoginResponse loginResponse = serverFacade.register(user);
+        serverFacade.createGame(gameName, loginResponse.authToken());
+
+        Collection<GameData> response = serverFacade.listGames(loginResponse.authToken());
+        assert response.size() == 1;
+    }
+
+    @Test
+    public void unauthListGames() {
+        String result = "";
+        try {
+            serverFacade.listGames("");
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: unauthorized");
     }
 }
