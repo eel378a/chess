@@ -4,7 +4,8 @@ import Data.LoginResponse;
 import Data.CreateGameRequest;
 import Data.CreateGameResponse;
 import Data.ListGameResponse;
-import model.AuthData;
+import Data.JoinGameReq;
+
 import model.GameData;
 import model.UserData;
 import com.google.gson.Gson;
@@ -16,7 +17,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
-import java.util.ArrayList;
 
 public class ServerFacade {
     private final String serverUrl;
@@ -50,8 +50,9 @@ public class ServerFacade {
     return makeRequest("GET", "/game", null, authToken, ListGameResponse.class).games();
     }
 
-    public void joinGame(String playerColor, int gameID) {
-        throw new RuntimeException("Not implemented");
+    public void joinGame(String playerColor, int gameID, String authToken) {
+        JoinGameReq req = new JoinGameReq(playerColor, gameID);
+        makeRequest("PUT", "/game", req, authToken, null);
     }
 
     //makeRequest and involved fns - see webapi.md
