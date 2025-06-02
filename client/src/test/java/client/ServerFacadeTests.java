@@ -2,6 +2,7 @@ package client;
 
 import org.junit.jupiter.api.*;
 import java.util.Collection;
+import java.util.ArrayList;
 import server.Server;
 
 import model.UserData;
@@ -147,6 +148,74 @@ public class ServerFacadeTests {
         String result = "";
         try {
             serverFacade.listGames("");
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: unauthorized");
+    }
+
+    @Test
+    public void joinGame() {
+        UserData user = new UserData("user", "password", "email");
+        UserData user2 = new UserData("user2", "password2", "email2");
+        String gameName = "game";
+
+        LoginResponse loginResponse = serverFacade.register(user);
+        LoginResponse loginResponse2 = serverFacade.register(user2);
+        int gameID = serverFacade.createGame(gameName, loginResponse.authToken());
+        serverFacade.joinGame("WHITE", gameID, loginResponse.authToken());
+        serverFacade.joinGame("BLACK", gameID, loginResponse2.authToken());
+
+        ArrayList<GameData> list = new ArrayList<>(serverFacade.listGames(loginResponse.authToken()));
+        assert list.getFirst().whiteUsername().equals(loginResponse.username());
+        assert list.getFirst().blackUsername().equals(loginResponse2.username());
+    }
+
+    @Test
+    public void joinAlreadyTakenGame() {
+        UserData user = new UserData("user", "password", "email");
+        UserData user2 = new UserData("user2", "password2", "email2");
+        String gameName = "game";
+
+        LoginResponse loginResponse = serverFacade.register(user);
+        LoginResponse loginResponse2 = serverFacade.register(user2);
+        int gameID = serverFacade.createGame(gameName, loginResponse.authToken());
+        serverFacade.joinGame("WHITE", gameID, loginResponse.authToken());
+
+        String result = "";
+        try {
+            serverFacade.joinGame("WHITE", gameID, loginResponse2.authToken());
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: already taken");
+    }
+
+    @Test
+    public void joinGameWithBadRequest() {
+        UserData user = new UserData("user", "password", "email");
+        UserData user2 = new UserData("user2", "password2", "email2");
+        String gameName = "game";
+
+        LoginResponse loginResponse = serverFacade.register(user);
+        LoginResponse loginResponse2 = serverFacade.register(user2);
+        int gameID = serverFacade.createGame(gameName, loginResponse.authToken());
+        serverFacade.joinGame("WHITE", gameID, loginResponse.authToken());
+
+        String result = "";
+        try {
+            serverFacade.joinGame("", gameID, loginResponse2.authToken());
+        } catch (Exception e) {
+            result = e.getMessage();
+        }
+        assert result.equals("Error: bad request");
+    }
+
+    @Test
+    public void unauthJoinGame() {
+        String result = "";
+        try {
+            serverFacade.joinGame("WHITE", 1, "");
         } catch (Exception e) {
             result = e.getMessage();
         }
