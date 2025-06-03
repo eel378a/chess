@@ -30,6 +30,7 @@ public class ServerFacade {
     }
 
     public LoginResponse register(UserData user) {
+        System.out.println("entered LoginResponse register(UserData)");
         return makeRequest("POST", "/user", user, null, LoginResponse.class);
     }
 
@@ -59,15 +60,23 @@ public class ServerFacade {
     private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseType) throws HttpExcept {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
+            //System.out.println("url done");
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
+            //System.out.println("http connection");
             http.setRequestMethod(method);
+            //System.out.println("request method set");
             if (authToken != null) {
                 http.addRequestProperty("authorization", authToken);
             }
+            //System.out.println("auth token worked, authorized");
+            //System.out.print(authToken);
             http.setDoOutput(true);
             writeBody(request, http);
+            //System.out.println("write body request worked"); //this doesnt happen
             http.connect();
+            //System.out.println("http connection was made");
             throwIfNotSuccessful(http);
+            //System.out.println("passed throw if not successful http throw");
             return readBody(http, responseType);
         } catch (HttpExcept e) {
             throw e;
@@ -78,10 +87,18 @@ public class ServerFacade {
 
     private void writeBody(Object request, HttpURLConnection http) throws IOException {
         if (request != null) {
+            //System.out.println("request was not null");
             http.addRequestProperty("Content-Type", "application/json");
+            //System.out.println("addrequestproperty worked");
             String reqData = new Gson().toJson(request);
+            //System.out.println("requested data to json worked");
+            // ^printed, so I assume theres something I am missing for output stream to work
+            //I am not sure why or what since I am following the curl instructions
+            // for writeRequest body - i THINK...
             try (OutputStream requestBody = http.getOutputStream()) {
+                //System.out.println("entered try for get output stream");
                 requestBody.write(reqData.getBytes());
+                //System.out.println("writing requestBody worked");
             }
         }
     }
