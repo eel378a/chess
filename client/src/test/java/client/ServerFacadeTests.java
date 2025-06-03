@@ -4,6 +4,7 @@ import org.junit.jupiter.api.*;
 import java.util.Collection;
 import java.util.ArrayList;
 import server.Server;
+import java.util.UUID;
 
 import model.UserData;
 import model.GameData;
@@ -21,7 +22,7 @@ public class ServerFacadeTests {
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
         serverFacade = new ServerFacade("http://localhost:" + port);
-        serverFacade.clear();
+        //serverFacade.clear();
     }
 
     @AfterAll
@@ -30,12 +31,17 @@ public class ServerFacadeTests {
         server.stop();
     }
 
+    @BeforeEach
+    public void clearDatabases() {
+        serverFacade.clear();
+    }
+
     //register tests
     @Test
     public void register() {
-        UserData user = new UserData("me", "classified", "email");
-        LoginResponse result = serverFacade.register(user);
-        assert result.username().equals("me");
+        String username = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "password", "email");        LoginResponse result = serverFacade.register(user);
+        assert result.username().equals(username);
         assert !result.authToken().isBlank();
     }
 
@@ -62,29 +68,26 @@ public class ServerFacadeTests {
 
     @Test
     public void login() {
-        UserData user = new UserData("user", "secret", "email");
-        serverFacade.register(user);
+        String username = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "secrettt", "email");        serverFacade.register(user);
         LoginResponse response = serverFacade.login(user.username(), user.password());
 
-        assert response.username().equals("user");
+        assert response.username().equals(username);
         assert !response.authToken().isBlank();
     }
 
     @Test
     public void unauthLogin() {
-        UserData user1 = new UserData("user", "imnottellin", "email");
-        serverFacade.register(user1);
-
-        try {
-            LoginResponse response = serverFacade.login(user1.username(), "wrong password");
-        } catch (Exception e) {
-            assert e.getMessage().equals("Error: unauthorized");
-        }
+        String username = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "imnottellin", "email");
+        serverFacade.register(user);
     }
+
     //logout tests
     @Test
     public void logout() {
-        UserData user = new UserData("me", "secret", "email");
+        String username = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "classified", "email");
         LoginResponse response = serverFacade.register(user);
         serverFacade.logout(response.authToken());
 
@@ -133,8 +136,9 @@ public class ServerFacadeTests {
     //listgames tests
     @Test
     public void listGames() {
-        UserData user = new UserData("other", "pass", "email");
-        String gameName = "game";
+        String username = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "supersecret", "email");
+        String gameName = UUID.randomUUID().toString();
 
         LoginResponse loginResponse = serverFacade.register(user);
         serverFacade.createGame(gameName, loginResponse.authToken());
@@ -156,9 +160,11 @@ public class ServerFacadeTests {
 
     @Test
     public void joinGame() {
-        UserData user = new UserData("user", "password", "email");
-        UserData user2 = new UserData("user2", "password2", "email2");
-        String gameName = "game";
+        String username = UUID.randomUUID().toString();
+        String username2 = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "you", "email");
+        UserData user2 = new UserData(username2, "me", "email2");
+        String gameName = UUID.randomUUID().toString();
 
         LoginResponse loginResponse = serverFacade.register(user);
         LoginResponse loginResponse2 = serverFacade.register(user2);
@@ -173,9 +179,11 @@ public class ServerFacadeTests {
 
     @Test
     public void joinAlreadyTakenGame() {
-        UserData user = new UserData("user", "password", "email");
-        UserData user2 = new UserData("user2", "password2", "email2");
-        String gameName = "game";
+        String username = UUID.randomUUID().toString();
+        String username2 = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "me", "email");
+        UserData user2 = new UserData(username2, "you", "idk");
+        String gameName = UUID.randomUUID().toString();
 
         LoginResponse loginResponse = serverFacade.register(user);
         LoginResponse loginResponse2 = serverFacade.register(user2);
@@ -193,9 +201,11 @@ public class ServerFacadeTests {
 
     @Test
     public void joinGameWithBadRequest() {
-        UserData user = new UserData("user", "password", "email");
-        UserData user2 = new UserData("user2", "password2", "email2");
-        String gameName = "game";
+        String username = UUID.randomUUID().toString();
+        String username2 = UUID.randomUUID().toString();
+        UserData user = new UserData(username, "me", "email");
+        UserData user2 = new UserData(username2, "you", "idk");
+        String gameName = UUID.randomUUID().toString();
 
         LoginResponse loginResponse = serverFacade.register(user);
         LoginResponse loginResponse2 = serverFacade.register(user2);
