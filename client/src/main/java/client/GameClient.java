@@ -24,6 +24,7 @@ public class GameClient extends Client {
         String[] arguments = line.split(" ");
         String command = (arguments.length > 0) ? arguments[0] : "leave";
         String[] parameters = Arrays.copyOfRange(arguments, 1, arguments.length);
+        //going to need ^ String[] parameters for later commands
         return switch (command) {
             case "leave" -> "leave";
             case "quit" -> "quit";
@@ -51,13 +52,11 @@ public class GameClient extends Client {
         }
         printedBoard.append(letters);
         printedBoard.append(RESET_TEXT_COLOR);
-        System.out.print(printedBoard.toString());
+        System.out.print(printedBoard);
         return printedBoard.toString();
     }
 
     String printBoardRow(ChessPiece[] row, int rowNumber, String firstColor, String lastColor) {
-        //String firstColor = rowNumber % 2 == 0 ? SET_BG_COLOR_DARK_GREEN : SET_BG_COLOR_LIGHT_GREY;
-        //String lastColor = rowNumber % 2 == 0 ? SET_BG_COLOR_LIGHT_GREY : SET_BG_COLOR_DARK_GREEN;
         StringBuilder printedRow = new StringBuilder(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLACK + " " + rowNumber +
                 " ");
         boolean colorSwitch = true;

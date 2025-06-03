@@ -35,12 +35,12 @@ public class PostLogin extends Client {
     }
 
     private String help() {
-        return SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " -> Display possible commands\n" +
-                SET_TEXT_COLOR_BLUE + "create <name>" + SET_TEXT_COLOR_WHITE + " -> Create a new game\n" +
+        return SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " -> List available commands\n" +
+                SET_TEXT_COLOR_BLUE + "create <name>" + SET_TEXT_COLOR_WHITE + " -> Create new game\n" +
                 SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_WHITE + " -> List all games\n" +
-                SET_TEXT_COLOR_BLUE + "join <id> <WHITE|BLACK>" + SET_TEXT_COLOR_WHITE + " -> Join a game as the" +
+                SET_TEXT_COLOR_BLUE + "join <id> <WHITE|BLACK>" + SET_TEXT_COLOR_WHITE + " -> Join a game as a" +
                 "specified color\n" +
-                SET_TEXT_COLOR_BLUE + "observe <id>" + SET_TEXT_COLOR_WHITE + " -> Observe a game\n" +
+                SET_TEXT_COLOR_BLUE + "observe <id>" + SET_TEXT_COLOR_WHITE + " -> Observe game, type game ID\n" +
                 SET_TEXT_COLOR_BLUE + "logout" + SET_TEXT_COLOR_WHITE + " -> Logout of your account\n" +
                 SET_TEXT_COLOR_BLUE + "quit" + SET_TEXT_COLOR_WHITE + " -> Exit the application";
     }
@@ -51,11 +51,11 @@ public class PostLogin extends Client {
                 serverFacade.createGame(params[0], authToken);
                 return "Successfully created a game.";
             } catch (Exception e) {
-                return "Something went wrong, please check your input and try again.";
+                return "Something went wrong creating a game, please check input and try again.";
             }
         }
         else {
-            return "The create command takes one argument, the name of the game you want to create. Please try again.";
+            return "The create command requires one argument, the name of the game you want to create. Please try again.";
         }
     }
 
@@ -72,7 +72,7 @@ public class PostLogin extends Client {
         if (params.length == 2) {
             try {
                 if (!params[1].equals("WHITE") && !(params[1].equals("BLACK"))) {
-                    return "You must specify either WHITE or BLACK. The requested color should be typed in all caps.";
+                    return "You must specify either WHITE or BLACK. Type in all caps.";
                 }
                 GameData selectedGame = gameList.get(Integer.parseInt(params[0]));
                 serverFacade.joinGame(params[1], selectedGame.gameID(), authToken);
@@ -85,8 +85,7 @@ public class PostLogin extends Client {
                 }
                 return "join";
             } catch (NumberFormatException e) {
-                return "Please specify the game you want to join using it's number in the list. Use the digit, don't type" +
-                        " out the number (e.g. 'join 1 WHITE' not 'observe 1 WHITE')";
+                return "Please specify the game you want to join using it's number in the list.";
             } catch (Exception e) {
                 return switch (e.getMessage()) {
                     case "Error: unauthorized" -> "quit";
@@ -96,7 +95,7 @@ public class PostLogin extends Client {
             }
         }
         else {
-            return "The join command takes two arguments, the ID of the game you want to create and the color you" +
+            return "The join command requires two arguments, the ID of the game you want to create and the color you" +
                     " want to play. Please try again.";
         }
     }
