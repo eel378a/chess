@@ -103,10 +103,10 @@ public class GameClient extends Client {
     }
 
     String getLetters() {
-        String whiteLetters = SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + "    " + "a" + "  " + "b" + "  " + "c" + "  "
-                + "d" + "  " + "e" + "  " + "f" + "  " + "g" + "  " + "h" + "    " + RESET_BG_COLOR + "\n";
+        String whiteLetters = SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + "    " + "a" + "   " + "b" + "   " + "c" + "  "
+                + "d" + "   " + "e" + "  " + "f" + "   " + "g" + "  " + "h" + "    " + RESET_BG_COLOR + "\n";
         String blackLetters = SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + "    " + "h" + "  " + "g" + "  " + "f" + "  "
-                + "e" + "  " + "d" + "  " + "c" + "  " + "b" + "  " + "a" + "    " + RESET_BG_COLOR + "\n";
+                + "e" + "  " + "d" + "  " + "c" + "  "+ "b" + "  "+ "a" + "    " + RESET_BG_COLOR + "\n";
         return color.equals(ChessGame.TeamColor.WHITE) ? whiteLetters : blackLetters;
     }
 }

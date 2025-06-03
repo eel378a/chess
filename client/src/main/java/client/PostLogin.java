@@ -85,7 +85,7 @@ public class PostLogin extends Client {
                 }
                 return "join";
             } catch (NumberFormatException e) {
-                return "Please specify the game you want to join using it's number in the list.";
+                return "Please specify the game you want to join using its number in the list.";
             } catch (Exception e) {
                 return switch (e.getMessage()) {
                     case "Error: unauthorized" -> "quit";
@@ -105,7 +105,7 @@ public class PostLogin extends Client {
             try {
                 game = gameList.get(Integer.parseInt(params[0]));
                 color = ChessGame.TeamColor.WHITE;
-                if (game == null) {
+                if (gameList.isEmpty()) { //change for observe fail
                     return "This game does not exist";
                 }
                 return "observe";
