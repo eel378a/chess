@@ -38,7 +38,7 @@ public class ServerFacade {
     }
 
     public void logout(String authToken) {
-    makeRequest("DELETE", "/session", null, authToken, null);
+        makeRequest("DELETE", "/session", null, authToken, null);
     }
 
     public int createGame(String gameName, String authToken) {
@@ -68,6 +68,7 @@ public class ServerFacade {
             writeBody(request, http);
             http.connect();
             throwIfNotSuccessful(http);
+            //System.out.println("did not throw error:)");
             return readBody(http, responseType);
         } catch (HttpExcept e) {
             throw e;
@@ -107,7 +108,6 @@ public class ServerFacade {
                     throw HttpExcept.fromStream(responseError, status);
                 }
             }
-
             throw new HttpExcept(status, "Error: " + status);
         }
     }

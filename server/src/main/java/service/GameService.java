@@ -27,6 +27,7 @@ public class GameService extends Service {
                 games.addGame(new GameData(newGameID, null, null, request.gameName(), new ChessGame()));
                 result = new CreateGameResult(newGameID, null);
                 newGameID++;
+                //moved newGameID++; to before...
             } else {
                 result = new CreateGameResult(null, "Error: unauthorized");
             }
