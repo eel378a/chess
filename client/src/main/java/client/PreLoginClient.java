@@ -43,7 +43,7 @@ public class PreLoginClient extends Client {
     private String register(String ... params) {
         if (params.length == 3) {
             try {
-                System.out.println("entered try loop");
+                //System.out.println("entered try loop");
                 LoginResponse response = serverFacade.register(new UserData(params[0], params[1], params[2]));
                 authToken = response.authToken();
                 username = response.username();
