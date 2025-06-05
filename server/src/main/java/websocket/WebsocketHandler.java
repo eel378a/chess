@@ -14,12 +14,18 @@ import websocket.commands.UserGameCommand;
 
 @WebSocket
 public class WebsocketHandler {
-    AuthDAO authDAO = new SqlAuthDao();
-    GameDAO gameDAO = new SqlGameDao();
-    ManageClient clients = new ManageClient();
+    AuthDAO authDAO;
+    GameDAO gameDAO;
+    ManageClient clients;
 
-    public WebsocketHandler() throws DataAccessException{
-        //later?
+    public WebsocketHandler() {
+        try {
+            authDAO = new SqlAuthDao();
+            gameDAO = new SqlGameDao();
+            clients = new ManageClient();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @OnWebSocketMessage
