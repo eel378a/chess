@@ -1,4 +1,4 @@
-package handler;
+package websocket;
 
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
