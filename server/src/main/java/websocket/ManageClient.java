@@ -1,7 +1,9 @@
 package websocket;
 
 import org.eclipse.jetty.websocket.api.Session;
-
+import java.util.ArrayList;
+import chess.ChessGame;
+import model.GameData;
 import java.util.HashMap;
 
 public class ManageClient {
@@ -21,6 +23,26 @@ public class ManageClient {
         if (clients.get(gameID) != null) {
             clients.get(gameID).remove(username);
         }//dont need an else yet, bc if it is null then nothing to remove. add try/catch exception later maybe
+    }
+
+    public void notifyAllClients(Integer gameID, String message) {
+        try {
+            for (Client client : clients.get(gameID).values()) {
+                client.sendNotification(message);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void loadAllClientsGame(Integer gameID, ChessGame game) {
+        try {
+            for (Client client : clients.get(gameID).values()) {
+                client.sendLoadGame(game);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public void notifyOtherClients(Integer gameID, Client currentClient, String message) {

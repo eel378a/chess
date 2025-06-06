@@ -2,6 +2,11 @@ package websocket;
 
 import dataaccess.*;
 import model.GameData;
+import model.AuthData;
+import chess.ChessGame;
+import chess.InvalidMoveException;
+import requestsresults.EmptyResult;
+import java.lang.ref.Cleaner;
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -32,66 +37,123 @@ public class WebsocketHandler {
     public void onMessage(Session session, String message) {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         try {
+            String username = getUserNameByCommand(command, session);
+            Client client = new Client(username, session);
             switch (command.getCommandType()) {
-                case CONNECT -> connect(command, session);
-                case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MoveCommand.class));
-                case LEAVE -> leave(command);
-                case RESIGN -> resign(command);
+                case CONNECT -> connect(command, client);
+                case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MoveCommand.class), client);
+                case LEAVE -> leave(command, client);
+                case RESIGN -> resign(command, client);
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void connect(UserGameCommand command, Session session) throws IOException {
+    private void connect(UserGameCommand command, Client client) throws IOException {
         try {
-            String un = getUserNameByCommand(command);
-            Client client = new Client(un, session);
             clients.add(command.getGameID(), client);
             sendLoadGame(client, command.getGameID());
-            String playerStatus = getPlayerStatusByCommand(command, un);
-            clients.notifyOtherClients(command.getGameID(), client, un + " has joined the game as " + playerStatus + ".");
+            String playerStatus = getPlayerStatusByCommand(command, client.username);
+            clients.notifyOtherClients(command.getGameID(), client, client.username + " has joined the game as " + playerStatus + ".");
         } catch (Exception e) {//error catch exception
-            ErrorSMessage error = new ErrorSMessage(ServerMessage.ServerMessageType.ERROR, "Error: " + e.getMessage());
-            session.getRemote().sendString(new Gson().toJson(error));
+            client.sendError("Error: " + e.getMessage());
         }
     }
 
-    private void makeMove(MoveCommand command) {
-        throw new RuntimeException("Not implemented");
+    private void makeMove(MoveCommand command, Client client) throws IOException {
+        try {
+            canMakeMove(command, client);
+            GameData gameData = getGameData(command.getGameID());
+            gameData.game().makeMove(command.getMove());
+            gameDAO.updateGame(gameData);
+            clients.loadAllClientsGame(command.getGameID(), gameData.game());
+            clients.notifyOtherClients(command.getGameID(), client, client.username + " made a move: " + command.getMove());
+            sendInCheckStatus(command.getGameID(), gameData.game(), getPlayerColorByCommand(command, client.username), client);
+        } catch (InvalidMoveException e) {
+            client.sendError("Error: Invalid move");
+        } catch (Exception e) {
+            client.sendError("Error: " + e.getMessage());
+        }
     }
 
-    private void leave(UserGameCommand command) {
+    //come back to
+    private void leave(UserGameCommand command, Client client) {
         throw new RuntimeException("Not implemented");
     }
-
-    private void resign(UserGameCommand command) {
+    //come back to
+    private void resign(UserGameCommand command, Client client) {
         throw new RuntimeException("Not implemented");
     }
 
     //helpers
-    private String getUserNameByCommand(UserGameCommand command) throws DataAccessException {
+    private String getUserNameByCommand(UserGameCommand command, Session session) throws Exception {
         String authToken = command.getAuthToken();
-        return authDAO.getAuthData(authToken).username();
-    }
+        AuthData authData = authDAO.getAuthData(authToken);
+        if (authData != null) {
+            return authDAO.getAuthData(authToken).username();
+        } else {
+            ErrorSMessage error = new ErrorSMessage(ServerMessage.ServerMessageType.ERROR, "Error: Unauthorized");
+            session.getRemote().sendString(new Gson().toJson(error));
+            throw new Exception("Unauthorized");
+        }    }
 
     private String getPlayerStatusByCommand(UserGameCommand command, String username) throws DataAccessException {
+        ChessGame.TeamColor color = getPlayerColorByCommand(command, username);
+        switch (color) {
+            case WHITE -> {return "white";}
+            case BLACK -> {return "black";}
+            case null -> {return "observer";}
+        }
+    }
+
+    private ChessGame.TeamColor getPlayerColorByCommand(UserGameCommand command, String username) throws DataAccessException {
         GameData gameData = gameDAO.getGame(command.getGameID());
         if (gameData.blackUsername().equals(username)) {
-            return "black";
+            return ChessGame.TeamColor.BLACK;
         } else if (gameData.whiteUsername().equals(username)) {
-            return "white";
+            return ChessGame.TeamColor.WHITE;
         } else {
-            return "an observer";
+            return null;
         }
     }
 
     private void sendLoadGame(Client client, Integer gameID) throws Exception { //load game req send
+        client.sendLoadGame(getGameData(gameID).game());
+    }
+
+    private GameData getGameData(Integer gameID) throws DataAccessException {
         GameData gameData = gameDAO.getGame(gameID);
         if (gameData != null) {
-            client.sendLoadGame(gameData.game());
+            return gameData;
         } else {//might need to refine this later for other tests?
             throw new DataAccessException("Invalid gameID");
+        }
+    }
+
+    //helpers, valid moves to make, check if in check and send status to clients
+    private void canMakeMove(MoveCommand command, Client client) throws Exception {
+        ChessGame.TeamColor color = getPlayerColorByCommand(command, client.username);
+        ChessGame game = getGameData(command.getGameID()).game();
+        ChessGame.TeamColor moveColor = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
+        if (!moveColor.equals(color)) {
+            throw new Exception("Piece is wrong color");
+        }
+    }
+
+    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color, Client client) {
+        ChessGame.TeamColor otherTeamColor;
+        if (color.equals(ChessGame.TeamColor.WHITE)) {
+            otherTeamColor = ChessGame.TeamColor.BLACK;
+        } else if (color.equals(ChessGame.TeamColor.BLACK)) {
+            otherTeamColor = ChessGame.TeamColor.WHITE;
+        } else {return;}
+        if (game.isInCheckmate(otherTeamColor)) {
+            clients.notifyAllClients(gameID, otherTeamColor.name() + " is in checkmate!");
+        } else if (game.isInCheck(otherTeamColor)) {
+            clients.notifyAllClients(gameID, otherTeamColor.name() + " is in check.");
+        } else if (game.isInStalemate(otherTeamColor)) {
+            clients.notifyAllClients(gameID, "Stalemate.");
         }
     }
 }

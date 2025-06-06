@@ -9,6 +9,7 @@ import chess.ChessGame;
 import websocket.messages.ServerMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.LoadSMessage;
+import websocket.messages.ErrorSMessage;
 
 public class Client {
     public String username;
@@ -17,6 +18,11 @@ public class Client {
     public Client(String username, Session session) {
         this.username = username;
         this.session = session;
+    }
+
+    public void sendError(String message) throws IOException {
+        ErrorSMessage serverMessage = new ErrorSMessage(ServerMessage.ServerMessageType.ERROR, message);
+        session.getRemote().sendString(new Gson().toJson(serverMessage));
     }
 
     public void sendLoadGame(ChessGame game) throws IOException {
