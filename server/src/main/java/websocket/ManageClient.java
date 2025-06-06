@@ -8,11 +8,19 @@ public class ManageClient {
     private HashMap<Integer, HashMap<String, Client>> clients = new HashMap<>();
 
     public void add(Integer gameID, Client client) {
-        clients.get(gameID).put(client.username, client);
+        if (clients.get(gameID) != null) {
+            clients.get(gameID).put(client.username, client);
+        } else {
+            HashMap<String, Client> gameClients = new HashMap<>();
+            gameClients.put(client.username, client);
+            clients.put(gameID, gameClients);
+        }
     }
 
-    public void remove(Integer gameID, String username, Session session) {
-        clients.get(gameID).remove(username);
+    public void remove(Integer gameID, String username) {
+        if (clients.get(gameID) != null) {
+            clients.get(gameID).remove(username);
+        }//dont need an else yet, bc if it is null then nothing to remove. add try/catch exception later maybe
     }
 
     public void notifyOtherClients(Integer gameID, Client currentClient, String message) {

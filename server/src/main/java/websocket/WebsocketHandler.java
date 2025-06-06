@@ -45,14 +45,13 @@ public class WebsocketHandler {
 
     private void connect(UserGameCommand command, Session session) throws IOException {
         try {
-            String username = getUserNameByCommand(command);
-            Client client = new Client(username, session);
+            String un = getUserNameByCommand(command);
+            Client client = new Client(un, session);
             clients.add(command.getGameID(), client);
-            GameData gameData = gameDAO.getGame(command.getGameID());
-            client.sendLoadGame(gameData.game());
-            String playerStatus = getPlayerStatusByCommand(command, username);
-            clients.notifyOtherClients(command.getGameID(), client, username + " has joined the game as " + playerStatus + ".");
-        } catch (DataAccessException e) {
+            sendLoadGame(client, command.getGameID());
+            String playerStatus = getPlayerStatusByCommand(command, un);
+            clients.notifyOtherClients(command.getGameID(), client, un + " has joined the game as " + playerStatus + ".");
+        } catch (Exception e) {//error catch exception
             ErrorSMessage error = new ErrorSMessage(ServerMessage.ServerMessageType.ERROR, "Error: " + e.getMessage());
             session.getRemote().sendString(new Gson().toJson(error));
         }
@@ -84,6 +83,15 @@ public class WebsocketHandler {
             return "white";
         } else {
             return "an observer";
+        }
+    }
+
+    private void sendLoadGame(Client client, Integer gameID) throws Exception { //load game req send
+        GameData gameData = gameDAO.getGame(gameID);
+        if (gameData != null) {
+            client.sendLoadGame(gameData.game());
+        } else {//might need to refine this later for other tests?
+            throw new DataAccessException("Invalid gameID");
         }
     }
 }
