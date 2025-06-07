@@ -77,13 +77,40 @@ public class WebsocketHandler {
         }
     }
 
-    //come back to
-    private void leave(UserGameCommand command, Client client) {
-        throw new RuntimeException("Not implemented");
+    private void leave(UserGameCommand command, Client client) throws IOException {
+        try {
+            GameData gameData = getGameData(command.getGameID());
+            GameData newGameData;
+            if (gameData.blackUsername() != null && gameData.blackUsername().equals(client.username)) {
+                newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+            } else if (gameData.whiteUsername() != null && gameData.whiteUsername().equals(client.username)) {
+                newGameData = new GameData(gameData.gameID(), null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+            } else {
+                newGameData = gameData;
+            }
+            gameDAO.updateGame(newGameData);
+            clients.notifyOtherClients(command.getGameID(), client, client.username + " has left the game.");
+            clients.remove(command.getGameID(), client.username);
+        } catch (Exception e) {
+            client.sendError("Error: " + e.getMessage());
+        }
     }
     //come back to
-    private void resign(UserGameCommand command, Client client) {
-        throw new RuntimeException("Not implemented");
+    private void resign(UserGameCommand command, Client client) throws IOException {
+        try {
+            if (getPlayerColorByCommand(command, client.username) == null) {
+                throw new Exception("Non-players cannot resign.");
+            }
+            GameData gameData = getGameData(command.getGameID());
+            if (!gameData.game().getIfInProgress()) {
+                throw new Exception("This game has already ended.");
+            }
+            gameData.game().setInProgress(false);
+            gameDAO.updateGame(gameData);
+            clients.notifyAllClients(command.getGameID(), client.username + " has resigned.");
+        } catch (Exception e) {
+            client.sendError("Error: " + e.getMessage());
+        }
     }
 
     //helpers
@@ -136,6 +163,9 @@ public class WebsocketHandler {
         ChessGame.TeamColor color = getPlayerColorByCommand(command, client.username);
         ChessGame game = getGameData(command.getGameID()).game();
         ChessGame.TeamColor moveColor = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
+        if (!game.getIfInProgress()) {
+            throw new Exception("This game ended.");
+        }
         if (!moveColor.equals(color)) {
             throw new Exception("Piece is wrong color");
         }

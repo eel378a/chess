@@ -13,6 +13,7 @@ import java.util.Objects;
 public class ChessGame {
     TeamColor teamTurn = TeamColor.WHITE;
     ChessBoard board = new ChessBoard();
+    boolean gameInProgress = true;
 
     public ChessGame() {
         this.board.resetBoard();
@@ -236,6 +237,15 @@ public class ChessGame {
         if (o == null || getClass() != o.getClass()) {return false;}
         ChessGame chessGame = (ChessGame) o;
         return teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board);
+    }
+
+    //to measure game play in progress or not
+    public boolean getIfInProgress(){
+        return gameInProgress;
+    }
+
+    public void setInProgress(boolean inProgress) {
+        this.gameInProgress = inProgress;
     }
 
     @Override
