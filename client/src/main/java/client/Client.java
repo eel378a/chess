@@ -15,6 +15,13 @@ public abstract class Client {
         this.serverFacade = serverFacade;
     }
 
+    public GameData getGame(){
+        return game;
+    }
+    public void setGame(GameData game){
+        this.game = game;
+    }
+
     public Client(Client other) {
         this.serverFacade = other.serverFacade;
         this.authToken = other.authToken;

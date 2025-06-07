@@ -3,20 +3,33 @@ package client;
 import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
+import model.GameData;
 
 import static ui.EscapeSequences.*;
 import java.util.Arrays;
 
 public class GameClient extends Client {
+    private WebsocketClient websocketClient;
 
     public GameClient(ServerFacade serverFacade) {
         super(serverFacade);
-        printBoard(new ChessGame().getBoard());
+        try {
+            websocketClient = new WebsocketClient(serverFacade.getServerUrl(), this);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        setGame(new GameData(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), new ChessGame()));
+        printBoard();
     }
 
     public GameClient(Client other) {
         super(other);
-        printBoard(new ChessGame().getBoard());
+        try {
+            websocketClient = new WebsocketClient(serverFacade.getServerUrl(), this);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        printBoard();
     }
 
     @Override
@@ -26,12 +39,58 @@ public class GameClient extends Client {
         String[] parameters = Arrays.copyOfRange(arguments, 1, arguments.length);
         //going to need ^ String[] parameters for later commands
         return switch (command) {
-            case "leave" -> "leave";
-            case "quit" -> "quit";
-            default -> "leave";
+            case "redraw" -> redraw();
+            case "leave" -> leave();
+            case "move" -> move();
+            case "resign" -> resign();
+            case "highlight" -> highlight();
+            default -> help();
         };    }
 
-    String printBoard(ChessBoard board) {
+    //string fns
+    public String help() {
+        return SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " - Show available commands\n" +
+                SET_TEXT_COLOR_BLUE + "redraw" + SET_TEXT_COLOR_WHITE + " - Redraw board\n" +
+                SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - Leave game\n" +
+                SET_TEXT_COLOR_BLUE + "move <id> <WHITE|BLACK>" + SET_TEXT_COLOR_WHITE + " - make specified move" +
+                " (only players may make moves)" +
+                SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - Resign (only players can resign)\n" +
+                SET_TEXT_COLOR_BLUE + "highlight <piece>" + SET_TEXT_COLOR_WHITE + " - Highlight available moves for a given piece";
+    }
+
+    public String redraw() {
+        return getBoardString(game.game().getBoard());
+    }
+
+    public String leave() {
+        websocketClient.sendLeave();
+        return "leave";
+    }
+
+    public String move() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public String resign() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public String highlight() {
+        throw new RuntimeException("Not implemented");
+    }
+
+
+    //print board stuff fns
+    public void printNotification(String message) {
+        System.out.println(message);
+        System.out.print(">>> ");
+    }
+
+    public void printBoard() {
+        System.out.println(getBoardString(game.game().getBoard()));
+    }
+
+    public String getBoardString(ChessBoard board) {
         String letters = getLetters();
         StringBuilder printedBoard = new StringBuilder(letters);
         int rowNumber;
