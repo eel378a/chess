@@ -5,8 +5,6 @@ import model.GameData;
 import model.AuthData;
 import chess.ChessGame;
 import chess.InvalidMoveException;
-import requestsresults.EmptyResult;
-import java.lang.ref.Cleaner;
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;

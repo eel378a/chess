@@ -24,6 +24,9 @@ public class ServerFacade {
     public ServerFacade(String url) {
         serverUrl= url;
     }
+    public String getServerUrl() {
+        return serverUrl;
+    }
 
     public void clear() {
     makeRequest("DELETE", "/db", null, null, null);
