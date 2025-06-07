@@ -1,12 +1,11 @@
 package client;
 
-import chess.ChessBoard;
+import chess.*;
 import chess.ChessGame;
-import chess.ChessPiece;
 import model.GameData;
 
 import static ui.EscapeSequences.*;
-import java.util.Arrays;
+import java.util.*;
 
 public class GameClient extends Client {
     private WebsocketClient websocketClient;
@@ -43,7 +42,7 @@ public class GameClient extends Client {
             case "leave" -> leave();
             case "move" -> move();
             case "resign" -> resign();
-            case "highlight" -> highlight();
+            case "highlight" -> highlight(parameters);
             default -> help();
         };    }
 
@@ -55,7 +54,8 @@ public class GameClient extends Client {
                 SET_TEXT_COLOR_BLUE + "move <id> <WHITE|BLACK>" + SET_TEXT_COLOR_WHITE + " - make specified move" +
                 " (only players may make moves)" +
                 SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - Resign (only players can resign)\n" +
-                SET_TEXT_COLOR_BLUE + "highlight <piece>" + SET_TEXT_COLOR_WHITE + " - Highlight available moves for a given piece";
+                SET_TEXT_COLOR_BLUE + "highlight <position>" + SET_TEXT_COLOR_WHITE + " - Highlight available moves for"+
+                " a piece located at a given psoition. List the position using the column letter and row number, ex. a4.";
     }
 
     public String redraw() {
@@ -72,11 +72,20 @@ public class GameClient extends Client {
     }
 
     public String resign() {
-        throw new RuntimeException("Not implemented");
-    }
+        websocketClient.sendResign();
+        return "Resigned.";    }
 
-    public String highlight() {
-        throw new RuntimeException("Not implemented");
+    public String highlight(String ... params) {
+        if (params.length != 1) {
+            return "'highlight' requires the position of the piece you want to see available moves for." +
+                    " Please try again.";
+        }
+        ChessPosition position = parsePositionParameter(params[0]);
+        if (position == null) {
+            return "'highlight' requires specification of a board position, ex. f7.";
+        }
+        Collection<ChessMove> validMoves = game.game().validMoves(position);
+        return getHighlightedBoardString(game.game().getBoard(), position, getEndPositions(validMoves));
     }
 
 
@@ -90,7 +99,11 @@ public class GameClient extends Client {
         System.out.println(getBoardString(game.game().getBoard()));
     }
 
-    public String getBoardString(ChessBoard board) {
+    private String getBoardString(ChessBoard board) {
+        return getHighlightedBoardString(board, null, null);
+    }
+
+    public String getHighlightedBoardString(ChessBoard board, ChessPosition currentPosition, Set<ChessPosition> validMoves) {
         String letters = getLetters();
         StringBuilder printedBoard = new StringBuilder(letters);
         int rowNumber;
@@ -105,7 +118,7 @@ public class GameClient extends Client {
         boolean evenRow = true;
         for (int i = rowNumber - 1; (i < 8 && i >= 0); i += stepSize) {
             printedBoard.append(printBoardRow(board.getBoard()[i], rowNumber, evenRow ? SET_BG_COLOR_LIGHT_GREY :
-                    SET_BG_COLOR_DARK_GREEN, evenRow ? SET_BG_COLOR_DARK_GREEN : SET_BG_COLOR_LIGHT_GREY));
+                    SET_BG_COLOR_DARK_GREEN, evenRow ? SET_BG_COLOR_DARK_GREEN : SET_BG_COLOR_LIGHT_GREY, currentPosition, validMoves));
             rowNumber += stepSize;
             evenRow = !evenRow;
         }
@@ -115,7 +128,8 @@ public class GameClient extends Client {
         return printedBoard.toString();
     }
 
-    String printBoardRow(ChessPiece[] row, int rowNumber, String firstColor, String lastColor) {
+    String printBoardRow(ChessPiece[] row, int rowNumber, String firstColor, String lastColor, ChessPosition selectedPosition,
+                         Set<ChessPosition> validMoves) {
         StringBuilder printedRow = new StringBuilder(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLACK + " " + rowNumber +
                 " ");
         boolean colorSwitch = true;
@@ -130,7 +144,16 @@ public class GameClient extends Client {
         }
         for (int i = columnNumber - 1; i < 8 && i >= 0; i += stepSize) {
             ChessPiece piece = row[i];
-            printedRow.append(printBoardSquare(piece, colorSwitch ? firstColor : lastColor));
+            String squareColor;
+            ChessPosition currentSquare = new ChessPosition(rowNumber, i + 1);
+            if (validMoves.contains(currentSquare)) {
+                squareColor = SET_BG_COLOR_GREEN;
+            } else if (currentSquare.equals(selectedPosition)) {
+                squareColor = SET_BG_COLOR_RED;
+            } else {
+                squareColor = colorSwitch ? firstColor : lastColor;
+            }
+            printedRow.append(printBoardSquare(piece, squareColor));
             colorSwitch = !colorSwitch;
         }
         printedRow.append(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLACK + " " + rowNumber + " " + RESET_BG_COLOR +
@@ -167,5 +190,37 @@ public class GameClient extends Client {
         String blackLetters = SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + "    " + "h" + "   " + "g" + "   " + "f" + "  "
                 + "e" + "   " + "d" + "  " + "c" + "   "+ "b" + "   "+ "a" + "    " + RESET_BG_COLOR + "\n";
         return color.equals(ChessGame.TeamColor.WHITE) ? whiteLetters : blackLetters;
+    }
+
+    //more position fns
+    ChessPosition parsePositionParameter(String parameter) {
+        try {
+            Integer column = switch (parameter.substring(0, 1)) {
+                case "a" -> 1;
+                case "b" -> 2;
+                case "c" -> 3;
+                case "d" -> 4;
+                case "e" -> 5;
+                case "f" -> 6;
+                case "g" -> 7;
+                case "h" -> 8;
+                default -> null;
+            };
+            int row = Integer.parseInt(parameter.substring(1));
+            if (row > 8 || row < 1 || column == null) {
+                return null;
+            }
+            return new ChessPosition(row, column);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    Set<ChessPosition> getEndPositions(Collection<ChessMove> moves) {
+        Set<ChessPosition> positions = new HashSet<>();
+        for (ChessMove move : moves) {
+            positions.add(move.getEndPosition());
+        }
+        return positions;
     }
 }

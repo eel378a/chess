@@ -56,6 +56,16 @@ public class WebsocketClient {
         }
     }
 
+    public void sendResign() {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, gamePlayClient.authToken,
+                    gamePlayClient.game.gameID());
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            gamePlayClient.printNotification("Error: " + e.getMessage());
+        }
+    }
+
     private void notification(NotificationMessage serverMessage) {
         throw new RuntimeException("Not implemented");
     }
