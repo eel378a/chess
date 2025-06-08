@@ -3,6 +3,7 @@ package client;
 import chess.*;
 import chess.ChessGame;
 import model.GameData;
+import websocket.commands.UserGameCommand;
 
 import static ui.EscapeSequences.*;
 import java.util.*;
@@ -18,7 +19,6 @@ public class GameClient extends Client {
             throw new RuntimeException(e);
         }
         setGame(new GameData(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), new ChessGame()));
-        printBoard();
     }
 
     public GameClient(Client other) {
@@ -28,7 +28,7 @@ public class GameClient extends Client {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        printBoard();
+        //printBoard();
     }
 
     @Override
@@ -40,7 +40,7 @@ public class GameClient extends Client {
         return switch (command) {
             case "redraw" -> redraw();
             case "leave" -> leave();
-            case "move" -> move();
+            case "move" -> move(parameters);
             case "resign" -> resign();
             case "highlight" -> highlight(parameters);
             default -> help();
@@ -51,11 +51,12 @@ public class GameClient extends Client {
         return SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " - Show available commands\n" +
                 SET_TEXT_COLOR_BLUE + "redraw" + SET_TEXT_COLOR_WHITE + " - Redraw board\n" +
                 SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - Leave game\n" +
-                SET_TEXT_COLOR_BLUE + "move <id> <WHITE|BLACK>" + SET_TEXT_COLOR_WHITE + " - make specified move" +
-                " (only players may make moves)" +
+                SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion type>" + SET_TEXT_COLOR_WHITE +
+                " - make specified move" + " (only players may make moves) - type a column letter and row number for"+
+                " the positions, and if the move leads to a pawn promotion, type the specified piece type desired, lowercased." +
                 SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - Resign (only players can resign)\n" +
                 SET_TEXT_COLOR_BLUE + "highlight <position>" + SET_TEXT_COLOR_WHITE + " - Highlight available moves for"+
-                " a piece located at a given psoition. List the position using the column letter and row number, ex. a4.";
+                " a piece located at a given psoition. Type the position using the column letter and row number, ex. a4.";
     }
 
     public String redraw() {
@@ -63,17 +64,32 @@ public class GameClient extends Client {
     }
 
     public String leave() {
-        websocketClient.sendLeave();
-        return "leave";
+        websocketClient.sendUserCommand(UserGameCommand.CommandType.LEAVE);        return "leave";
     }
 
-    public String move() {
-        throw new RuntimeException("Not implemented");
+    public String move(String ... params) {
+        if (params.length < 2 || params.length > 3) {
+            return "The move command takes two or three arguments, the current position of the piece you want to move and" +
+                    " the position you want to move it to, and optionally the type a pawn will be promoted to. Please try again.";
+        }
+        ChessPosition startPosition = parsePositionParameter(params[0]);
+        ChessPosition endPosition = parsePositionParameter(params[1]);
+        ChessPiece.PieceType promotionPiece;
+        if (params.length < 3) {
+            promotionPiece = null;
+        } else {
+            promotionPiece = getPromotionPiece(params[2]);
+            if (promotionPiece == null) {
+                return "Invalid promotion type. Please try again.";
+            }
+        }
+        ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
+        websocketClient.sendMove(move);
+        return "";
     }
 
     public String resign() {
-        websocketClient.sendResign();
-        return "Resigned.";    }
+        websocketClient.sendUserCommand(UserGameCommand.CommandType.RESIGN);        return "Resigned.";    }
 
     public String highlight(String ... params) {
         if (params.length != 1) {
@@ -97,6 +113,7 @@ public class GameClient extends Client {
 
     public void printBoard() {
         System.out.println(getBoardString(game.game().getBoard()));
+        System.out.print(">>> ");
     }
 
     private String getBoardString(ChessBoard board) {
@@ -222,5 +239,15 @@ public class GameClient extends Client {
             positions.add(move.getEndPosition());
         }
         return positions;
+    }
+
+    ChessPiece.PieceType getPromotionPiece(String type) {
+        return switch (type) {
+            case "queen" -> ChessPiece.PieceType.QUEEN;
+            case "rook" -> ChessPiece.PieceType.ROOK;
+            case "bishop" -> ChessPiece.PieceType.BISHOP;
+            case "knight" -> ChessPiece.PieceType.KNIGHT;
+            default -> null;
+        };
     }
 }

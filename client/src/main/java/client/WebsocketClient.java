@@ -5,7 +5,8 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import java.net.URI;
 
-import chess.ChessGame;
+import chess.ChessMove;
+import websocket.commands.MoveCommand;
 import com.google.gson.Gson;
 import websocket.messages.ErrorSMessage;
 import websocket.messages.LoadSMessage;
@@ -14,8 +15,9 @@ import websocket.messages.ServerMessage;
 import javax.websocket.MessageHandler;
 import model.GameData;
 import websocket.commands.UserGameCommand;
+import javax.websocket.*;
 
-public class WebsocketClient {
+public class WebsocketClient extends Endpoint {
     private Session session;
     private GameClient gamePlayClient;
 
@@ -24,6 +26,7 @@ public class WebsocketClient {
         URI uri = new URI(url.replace("http", "ws") + "/ws");
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         this.session = container.connectToServer(this, uri);
+        sendUserCommand(UserGameCommand.CommandType.CONNECT);
 
         session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
@@ -38,6 +41,10 @@ public class WebsocketClient {
         });
     }
 
+    @Override
+    public void onOpen(Session session, EndpointConfig endpointConfig) {
+    }
+
     private void loadGame(LoadSMessage serverMessage) {
         GameData gameData = gamePlayClient.game;
         GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
@@ -46,9 +53,9 @@ public class WebsocketClient {
         gamePlayClient.printBoard();
     }
 
-    public void sendLeave() {
+    public void sendUserCommand(UserGameCommand.CommandType type) {
         try {
-            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, gamePlayClient.authToken,
+            UserGameCommand command = new UserGameCommand(type, gamePlayClient.authToken,
                     gamePlayClient.game.gameID());
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (Exception e) {
@@ -56,10 +63,10 @@ public class WebsocketClient {
         }
     }
 
-    public void sendResign() {
+    public void sendMove(ChessMove move) {
         try {
-            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, gamePlayClient.authToken,
-                    gamePlayClient.game.gameID());
+            MoveCommand command = new MoveCommand(UserGameCommand.CommandType.LEAVE, gamePlayClient.authToken,
+                    gamePlayClient.game.gameID(), move);
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (Exception e) {
             gamePlayClient.printNotification("Error: " + e.getMessage());
