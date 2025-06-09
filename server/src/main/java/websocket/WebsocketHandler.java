@@ -14,6 +14,8 @@ import websocket.messages.ServerMessage;
 import java.io.IOException;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
+import chess.ChessMove;
+import chess.ChessPosition;
 
 @WebSocket
 public class WebsocketHandler {
@@ -66,7 +68,8 @@ public class WebsocketHandler {
             gameData.game().makeMove(command.getMove());
             gameDAO.updateGame(gameData);
             clients.loadAllClientsGame(command.getGameID(), gameData.game());
-            clients.notifyOtherClients(command.getGameID(), client, client.username + " made a move: " + command.getMove());
+            clients.notifyOtherClients(command.getGameID(), client, client.username + " moved " + readPosition(command.getMove().getStartPosition()) +
+                    " to " + readPosition(command.getMove().getEndPosition()) + ".");
             sendInCheckStatus(command.getGameID(), gameData.game(), getPlayerColorByCommand(command, client.username), client);
         } catch (InvalidMoveException e) {
             client.sendError("Error: Invalid move");
@@ -103,8 +106,7 @@ public class WebsocketHandler {
             if (!gameData.game().getIfInProgress()) {
                 throw new Exception("This game has already ended.");
             }
-            gameData.game().setInProgress(false);
-            gameDAO.updateGame(gameData);
+            endGame(command.getGameID());
             clients.notifyAllClients(command.getGameID(), client.username + " has resigned.");
         } catch (Exception e) {
             client.sendError("Error: " + e.getMessage());
@@ -160,6 +162,9 @@ public class WebsocketHandler {
     private void canMakeMove(MoveCommand command, Client client) throws Exception {
         ChessGame.TeamColor color = getPlayerColorByCommand(command, client.username);
         ChessGame game = getGameData(command.getGameID()).game();
+        if (game.getBoard().getPiece(command.getMove().getStartPosition()) == null) {
+            throw new Exception("Invalid move");
+        }
         ChessGame.TeamColor moveColor = game.getBoard().getPiece(command.getMove().getStartPosition()).getTeamColor();
         if (!game.getIfInProgress()) {
             throw new Exception("This game ended.");
@@ -169,19 +174,48 @@ public class WebsocketHandler {
         }
     }
 
-    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color, Client client) {
+    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color, Client client) throws DataAccessException{
         ChessGame.TeamColor otherTeamColor;
+        if(color == null){
+            return;
+        }
         if (color.equals(ChessGame.TeamColor.WHITE)) {
             otherTeamColor = ChessGame.TeamColor.BLACK;
         } else if (color.equals(ChessGame.TeamColor.BLACK)) {
             otherTeamColor = ChessGame.TeamColor.WHITE;
         } else {return;}
         if (game.isInCheckmate(otherTeamColor)) {
+            endGame(gameID);
             clients.notifyAllClients(gameID, otherTeamColor.name() + " is in checkmate!");
         } else if (game.isInCheck(otherTeamColor)) {
             clients.notifyAllClients(gameID, otherTeamColor.name() + " is in check.");
         } else if (game.isInStalemate(otherTeamColor)) {
+            endGame(gameID);
             clients.notifyAllClients(gameID, "Stalemate.");
         }
+    }
+
+    //endGame fn
+    private void endGame(int gameID) throws DataAccessException {
+        GameData gameData = getGameData(gameID);
+        gameData.game().setInProgress(false);
+        gameDAO.updateGame(gameData);
+    }
+
+    //to print a readable position to the player :)
+    private String readPosition(ChessPosition position) {
+        String column = switch (position.getColumn()) {
+            case 1 -> "a";
+            case 2 -> "b";
+            case 3 -> "c";
+            case 4 -> "d";
+            case 5 -> "e";
+            case 6 -> "f";
+            case 7 -> "g";
+            case 8 -> "h";
+            default -> null;
+        };
+        String row = String.valueOf(position.getRow());
+        return column + row; //returns in form b4
     }
 }
