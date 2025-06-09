@@ -65,7 +65,7 @@ public class WebsocketClient extends Endpoint {
 
     public void sendMove(ChessMove move) {
         try {
-            MoveCommand command = new MoveCommand(UserGameCommand.CommandType.LEAVE, gamePlayClient.authToken,
+            MoveCommand command = new MoveCommand(UserGameCommand.CommandType.MAKE_MOVE, gamePlayClient.authToken,
                     gamePlayClient.game.gameID(), move);
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (Exception e) {

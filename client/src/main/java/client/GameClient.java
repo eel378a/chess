@@ -19,6 +19,7 @@ public class GameClient extends Client {
             throw new RuntimeException(e);
         }
         setGame(new GameData(game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), new ChessGame()));
+        System.out.println(activeGame);
     }
 
     public GameClient(Client other) {
@@ -28,6 +29,7 @@ public class GameClient extends Client {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        System.out.println(activeGame);
         //printBoard();
     }
 
@@ -77,7 +79,10 @@ public class GameClient extends Client {
         ChessPiece.PieceType promotionPiece;
         if (params.length < 3) {
             promotionPiece = null;
-        } else {
+        }else if(!game.game().getIfInProgress()){
+            return "This game ended.";
+        }
+        else {
             promotionPiece = getPromotionPiece(params[2]);
             if (promotionPiece == null) {
                 return "Invalid promotion type. Please try again.";
@@ -89,7 +94,13 @@ public class GameClient extends Client {
     }
 
     public String resign() {
-        websocketClient.sendUserCommand(UserGameCommand.CommandType.RESIGN);        return "Resigned.";    }
+        if (activeGame) {
+            websocketClient.sendUserCommand(UserGameCommand.CommandType.RESIGN);
+            return "Resigned.";
+        } else {//an observer could try...
+            return "Only players can resign.";
+        }
+    }
 
     public String highlight(String ... params) {
         if (params.length != 1) {
@@ -163,7 +174,7 @@ public class GameClient extends Client {
             ChessPiece piece = row[i];
             String squareColor;
             ChessPosition currentSquare = new ChessPosition(rowNumber, i + 1);
-            if (validMoves.contains(currentSquare)) {
+            if (validMoves!=null && validMoves.contains(currentSquare)) {
                 squareColor = SET_BG_COLOR_GREEN;
             } else if (currentSquare.equals(selectedPosition)) {
                 squareColor = SET_BG_COLOR_RED;

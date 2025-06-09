@@ -10,9 +10,11 @@ public abstract class Client {
     GameData game;
     ChessGame.TeamColor color;
     protected HashMap<Integer, GameData> gameList = new HashMap<>();
+    boolean activeGame;
 
     public Client(ServerFacade serverFacade) {
         this.serverFacade = serverFacade;
+        this.activeGame = false;
     }
 
     public GameData getGame(){
@@ -28,6 +30,7 @@ public abstract class Client {
         this.username = other.username;
         this.game = other.game;
         this.color = other.color;
+        this.activeGame = other.activeGame;
     }
 
     abstract String eval(String line);
