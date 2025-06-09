@@ -102,8 +102,11 @@ public class GameClient extends Client {
             System.out.print("Resign? (type 'yes' or 'no') \n>>> ");
             if (scanner.nextLine().equals("yes")) {
                 websocketClient.sendUserCommand(UserGameCommand.CommandType.RESIGN);
+                return "Resigned.";
             }
-            return "Resigned.";
+            else{
+                return "Did not resign.";
+            }
         } else {//an observer could try...
             return "Only players can resign.";
         }
@@ -159,7 +162,7 @@ public class GameClient extends Client {
         }
         printedBoard.append(letters);
         printedBoard.append(RESET_TEXT_COLOR);
-        System.out.print(printedBoard);
+        //System.out.print(printedBoard);
         return "\n" +printedBoard;
     }
 
@@ -219,7 +222,7 @@ public class GameClient extends Client {
         return squareColor + pieceColor + pieceCharacter;
     }
 
-    String getLetters() {
+    String getLetters() { //weird spacing and all:)
         String whiteLetters = SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + "    " + "a" + "   " + "b" + "   " + "c" + "  "
                 + "d" + "   " + "e" + "  " + "f" + "   " + "g" + "  " + "h" + "    " + RESET_BG_COLOR + "\n";
         String blackLetters = SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + "    " + "h" + "   " + "g" + "   " + "f" + "  "
