@@ -14,7 +14,6 @@ import websocket.messages.ServerMessage;
 import java.io.IOException;
 import websocket.commands.MoveCommand;
 import websocket.commands.UserGameCommand;
-import chess.ChessMove;
 import chess.ChessPosition;
 
 @WebSocket
@@ -68,9 +67,10 @@ public class WebsocketHandler {
             gameData.game().makeMove(command.getMove());
             gameDAO.updateGame(gameData);
             clients.loadAllClientsGame(command.getGameID(), gameData.game());
-            clients.notifyOtherClients(command.getGameID(), client, client.username + " moved " + readPosition(command.getMove().getStartPosition()) +
+            clients.notifyOtherClients(command.getGameID(), client, client.username + " moved " +
+                    readPosition(command.getMove().getStartPosition()) +
                     " to " + readPosition(command.getMove().getEndPosition()) + ".");
-            sendInCheckStatus(command.getGameID(), gameData.game(), getPlayerColorByCommand(command, client.username), client);
+            sendInCheckStatus(command.getGameID(), gameData.game(), getPlayerColorByCommand(command, client.username));
         } catch (InvalidMoveException e) {
             client.sendError("Error: Invalid move");
         } catch (Exception e) {
@@ -174,7 +174,7 @@ public class WebsocketHandler {
         }
     }
 
-    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color, Client client) throws DataAccessException{
+    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color) throws DataAccessException{
         ChessGame.TeamColor otherTeamColor;
         if(color == null){
             return;

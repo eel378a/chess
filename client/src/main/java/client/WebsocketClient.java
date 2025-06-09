@@ -18,8 +18,8 @@ import websocket.commands.UserGameCommand;
 import javax.websocket.*;
 
 public class WebsocketClient extends Endpoint {
-    private Session session;
-    private GameClient gamePlayClient;
+    private final Session session;
+    private final GameClient gamePlayClient;
 
     public WebsocketClient(String url, GameClient gamePlayClient) throws Exception {
         this.gamePlayClient = gamePlayClient;

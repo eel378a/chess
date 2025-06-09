@@ -30,7 +30,6 @@ public class GameClient extends Client {
             throw new RuntimeException(e);
         }
         System.out.println(activeGame);
-        //printBoard();
     }
 
     @Override
@@ -46,7 +45,8 @@ public class GameClient extends Client {
             case "resign" -> resign();
             case "highlight" -> highlight(parameters);
             default -> help();
-        };    }
+        };
+    }
 
     //string fns
     public String help() {
@@ -76,6 +76,9 @@ public class GameClient extends Client {
         }
         ChessPosition startPosition = parsePositionParameter(params[0]);
         ChessPosition endPosition = parsePositionParameter(params[1]);
+        if(startPosition==null||endPosition==null){
+            return "please try again, the given positions are in the wrong format.";
+        }
         ChessPiece.PieceType promotionPiece;
         if (params.length < 3) {
             promotionPiece = null;
@@ -95,7 +98,11 @@ public class GameClient extends Client {
 
     public String resign() {
         if (activeGame) {
-            websocketClient.sendUserCommand(UserGameCommand.CommandType.RESIGN);
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Resign? (type 'yes' or 'no') \n>>> ");
+            if (scanner.nextLine().equals("yes")) {
+                websocketClient.sendUserCommand(UserGameCommand.CommandType.RESIGN);
+            }
             return "Resigned.";
         } else {//an observer could try...
             return "Only players can resign.";
@@ -153,7 +160,7 @@ public class GameClient extends Client {
         printedBoard.append(letters);
         printedBoard.append(RESET_TEXT_COLOR);
         System.out.print(printedBoard);
-        return printedBoard.toString();
+        return "\n" +printedBoard;
     }
 
     String printBoardRow(ChessPiece[] row, int rowNumber, String firstColor, String lastColor, ChessPosition selectedPosition,
