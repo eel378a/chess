@@ -74,10 +74,10 @@ public class WebsocketClient extends Endpoint {
     }
 
     private void notification(NotificationMessage serverMessage) {
-        throw new RuntimeException("Not implemented");
+        gamePlayClient.printNotification(serverMessage.message);
     }
 
     private void error(ErrorSMessage serverMessage) {
-        throw new RuntimeException("Not implemented");
+        gamePlayClient.printNotification(serverMessage.errorMessage);
     }
 }
