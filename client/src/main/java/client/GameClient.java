@@ -194,7 +194,7 @@ public class GameClient extends Client {
             printedRow.append(printBoardSquare(piece, squareColor));
             colorSwitch = !colorSwitch;
         }
-        printedRow.append(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLACK + " " + rowNumber + " " + RESET_BG_COLOR +
+        printedRow.append(SET_BG_COLOR_WHITE + SET_TEXT_COLOR_BLUE + " " + rowNumber + " " + RESET_BG_COLOR +
                 "\n");
         return printedRow.toString();
     }
