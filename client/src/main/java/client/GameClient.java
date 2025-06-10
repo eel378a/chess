@@ -55,10 +55,12 @@ public class GameClient extends Client {
                 SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - Leave game\n" +
                 SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion type>" + SET_TEXT_COLOR_WHITE +
                 " - make specified move" + " (only players may make moves) - type a column letter and row number for"+
-                " the positions, and if the move leads to a pawn promotion, type the specified piece type desired, lowercased." +
+                " the positions, and if the move leads to a pawn promotion,"+
+                " type the specified piece type desired, lowercased." +
                 SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - Resign (only players can resign)\n" +
-                SET_TEXT_COLOR_BLUE + "highlight <position>" + SET_TEXT_COLOR_WHITE + " - Highlight available moves for"+
-                " a piece located at a given psoition. Type the position using the column letter and row number, ex. a4.";
+                SET_TEXT_COLOR_BLUE + "highlight <position>" + SET_TEXT_COLOR_WHITE
+                + " - Highlight available moves for a piece located at a given psoition."+
+                " Type the position using the column letter and row number, ex. a4.";
     }
 
     public String redraw() {
@@ -71,8 +73,9 @@ public class GameClient extends Client {
 
     public String move(String ... params) {
         if (params.length < 2 || params.length > 3) {
-            return "The move command takes two or three arguments, the current position of the piece you want to move and" +
-                    " the position you want to move it to, and optionally the type a pawn will be promoted to. Please try again.";
+            return "The move command takes two or three arguments, the current position of the piece you want to move "+
+                    "and the position you want to move it to, and optionally the type a pawn will be promoted to."+
+                    " Please try again.";
         }
         ChessPosition startPosition = parsePositionParameter(params[0]);
         ChessPosition endPosition = parsePositionParameter(params[1]);
