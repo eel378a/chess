@@ -159,7 +159,8 @@ public class GameClient extends Client {
         boolean evenRow = true;
         for (int i = rowNumber - 1; (i < 8 && i >= 0); i += stepSize) {
             printedBoard.append(printBoardRow(board.getBoard()[i], rowNumber, evenRow ? SET_BG_COLOR_LIGHT_GREY :
-                    SET_BG_COLOR_DARK_GREEN, evenRow ? SET_BG_COLOR_DARK_GREEN : SET_BG_COLOR_LIGHT_GREY, currentPosition, validMoves));
+                    SET_BG_COLOR_DARK_GREEN, evenRow ? SET_BG_COLOR_DARK_GREEN : SET_BG_COLOR_LIGHT_GREY,
+                    currentPosition, validMoves));
             rowNumber += stepSize;
             evenRow = !evenRow;
         }
@@ -169,8 +170,8 @@ public class GameClient extends Client {
         return "\n" +printedBoard;
     }
 
-    String printBoardRow(ChessPiece[] row, int rowNumber, String firstColor, String lastColor, ChessPosition selectedPosition,
-                         Set<ChessPosition> validMoves) {
+    String printBoardRow(ChessPiece[] row, int rowNumber, String firstColor, String lastColor,
+                         ChessPosition selectedPosition, Set<ChessPosition> validMoves) {
         StringBuilder printedRow = new StringBuilder(SET_BG_COLOR_DARK_GREY + SET_TEXT_COLOR_BLACK + " " + rowNumber +
                 " ");
         boolean colorSwitch = true;
