@@ -121,7 +121,7 @@ public class GameClient extends Client {
                     " Please try again.";
         }
         ChessPosition position = parsePositionParameter(params[0]);
-        if (position == null) {
+        if (game.game().getBoard().getPiece(position) == null) { //chess.ChessBoard.getPiece(chess.ChessPosition) == null
             return "'highlight' requires specification of a board position, ex. f7.";
         }
         Collection<ChessMove> validMoves = game.game().validMoves(position);
