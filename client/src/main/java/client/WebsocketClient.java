@@ -77,7 +77,7 @@ public class WebsocketClient extends Endpoint {
         gamePlayClient.printNotification(serverMessage.message);
     }
 
-    private void error(ErrorSMessage serverMessage) {
-        gamePlayClient.printNotification(serverMessage.errorMessage);
+    private void error(ErrorSMessage serverMessage) { //fixed printing gameplay error, check that this doesnt intefere with other game errors though
+        //gamePlayClient.printNotification(serverMessage.errorMessage);
     }
 }

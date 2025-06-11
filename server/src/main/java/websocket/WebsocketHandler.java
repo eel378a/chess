@@ -70,7 +70,7 @@ public class WebsocketHandler {
             clients.notifyOtherClients(command.getGameID(), client, client.username + " moved " +
                     readPosition(command.getMove().getStartPosition()) +
                     " to " + readPosition(command.getMove().getEndPosition()) + ".");
-            sendInCheckStatus(command.getGameID(), gameData.game(), getPlayerColorByCommand(command, client.username));
+            sendInCheckStatus(command.getGameID(), gameData.game(), getPlayerColorByCommand(command, client.username), client);
         } catch (InvalidMoveException e) {
             client.sendError("Error: Invalid move");
         } catch (Exception e) {
@@ -174,7 +174,7 @@ public class WebsocketHandler {
         }
     }
 
-    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color) throws DataAccessException{
+    private void sendInCheckStatus(Integer gameID, ChessGame game, ChessGame.TeamColor color, Client client) throws DataAccessException{
         ChessGame.TeamColor otherTeamColor;
         if(color == null){
             return;
@@ -186,9 +186,9 @@ public class WebsocketHandler {
         } else {return;}
         if (game.isInCheckmate(otherTeamColor)) {
             endGame(gameID);
-            clients.notifyAllClients(gameID, otherTeamColor.name() + " is in checkmate!");
+            clients.notifyAllClients(gameID, client.username + " is in checkmate!");
         } else if (game.isInCheck(otherTeamColor)) {
-            clients.notifyAllClients(gameID, otherTeamColor.name() + " is in check.");
+            clients.notifyAllClients(gameID, client.username + " is in check.");
         } else if (game.isInStalemate(otherTeamColor)) {
             endGame(gameID);
             clients.notifyAllClients(gameID, "Stalemate.");
